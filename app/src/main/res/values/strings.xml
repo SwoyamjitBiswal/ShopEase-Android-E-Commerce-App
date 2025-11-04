@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">ShopEase</string>
+    <string name="default_web_client_id">387983008605-c31c427c4517109dcafeb4.apps.googleusercontent.com</string>
+    <string name="sign_in_with_google">Sign in with Google</string>
+    <string name="google_sign_in_failed">Google Sign-In failed</string>
+    <string name="firebase_authentication_failed">Firebase Authentication failed</string>
+    <string name="sign_out">Sign Out</string>
+    <string name="guest">Guest</string>
+    <string name="guest_email">guest@example.com</string>
+    <string name="my_orders">My Orders</string>
+    <string name="shipping_addresses">Shipping Addresses</string>
+    <string name="payment_methods">Payment Methods</string>
+    <string name="dark_mode">Dark Mode</string>
+    <string name="notifications">Notifications</string>
+    <string name="language">Language</string>
+    <string name="logout">Logout</string>
+    <string name="promotional_banner">Promotional banner</string>
+    <string name="add_to_cart">Add to Cart</string>
+    <string name="product_image">Product image</string>
+    <string name="add_to_wishlist">Add to wishlist</string>
+    <string name="no_shipping_addresses">No shipping addresses</string>
+    <string name="add_an_address_to_see_it_here">Add an address to see it here.</string>
+    <string name="navigation_icon_desc">Open navigation menu</string>
+    <string name="bottom_navigation_desc">Bottom navigation bar</string>
+</resources>

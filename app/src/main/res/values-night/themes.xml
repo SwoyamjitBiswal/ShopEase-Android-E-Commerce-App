@@ -1,0 +1,29 @@
+<resources>
+    <style name="Theme.ShopEase" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Primary brand color. -->
+        <item name="colorPrimary">@color/colorPrimary</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <!-- Secondary brand color. -->
+        <item name="colorSecondary">@color/colorAccent</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <!-- Status bar color. -->
+        <item name="android:statusBarColor">?attr/colorPrimary</item>
+
+        <!-- Set the window background -->
+        <item name="android:windowBackground">@drawable/background_simple_dark</item>
+
+        <item name="materialCardViewStyle">@style/Widget.ShopEase.CardView</item>
+    </style>
+
+    <style name="Widget.ShopEase.CardView" parent="Widget.MaterialComponents.CardView">
+        <item name="cardCornerRadius">12dp</item>
+        <item name="cardElevation">6dp</item>
+        <item name="android:layout_margin">8dp</item>
+    </style>
+
+    <style name="Theme.ShopEase.NoActionBar" parent="Theme.ShopEase">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+    </style>
+
+</resources>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+
+    <!-- New Blue & Cyan Color Palette -->
+    <color name="colorPrimary">#2196F3</color> <!-- Blue -->
+    <color name="colorPrimaryDark">#1976D2</color> <!-- Darker Blue -->
+    <color name="colorAccent">#00BCD4</color> <!-- Cyan -->
+
+    <color name="textColorPrimary">#212121</color>
+    <color name="textColorSecondary">#757575</color>
+    <color name="backgroundColor">#F5F5F5</color> <!-- Light Grey Background -->
+    <color name="iconColor">#616161</color>
+
+    <!-- Dark Theme Colors -->
+    <color name="darkBackgroundColor">#121212</color>
+    <color name="darkTextColorPrimary">#FFFFFF</color>
+    <color name="darkIconColor">#E0E0E0</color>
+    <color name="google_blue">#4285F4</color>
+</resources>
