@@ -2,6 +2,15 @@
 
 ShopEase is a complete, modern e-commerce application for Android, built with Kotlin and using a robust, hybrid data model. It provides a full suite of features for both customers and administrators, demonstrating a professional, scalable, and offline-first architecture.
 
+## Setup
+
+To run this project, you will need to set up your own Firebase project and add the generated `google-services.json` file to the `app/` directory.
+
+1. Create a new project in the [Firebase Console](https://console.firebase.google.com/).
+2. Add a new Android app to the project with the package name `com.example.shopease`.
+3. Download the `google-services.json` file provided during the setup process.
+4. Place this file in the `ShopEase2/app/` directory of the project.
+
 ## Core Features
 
 ### Customer-Facing App
