@@ -3,7 +3,7 @@ package com.example.shopease.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
+import android.widget.Button
 import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
@@ -33,17 +33,16 @@ class ReviewManagementAdapter(
     inner class ReviewViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val reviewTitle: TextView = itemView.findViewById(R.id.review_title)
         private val reviewAuthor: TextView = itemView.findViewById(R.id.review_author_name)
-        private val deleteButton: ImageButton = itemView.findViewById(R.id.delete_button)
+        // Corrected: The view in the XML is a Button, not an ImageButton
+        private val deleteButton: Button = itemView.findViewById(R.id.delete_button)
 
         fun bind(productId: String, review: Review) {
             reviewTitle.text = review.comment
             reviewAuthor.text = "by ${review.userName}"
 
             deleteButton.setOnClickListener {
-                // In a real app, you would need a way to get the review's unique ID from Firebase
-                // For now, we'll assume the viewModel can handle this.
-                // viewModel.deleteReview(productId, review.id) 
-                Toast.makeText(itemView.context, "Delete feature not fully implemented in this adapter.", Toast.LENGTH_SHORT).show()
+                viewModel.deleteReview(productId, review)
+                Toast.makeText(itemView.context, "Review deleted", Toast.LENGTH_SHORT).show()
             }
         }
     }
