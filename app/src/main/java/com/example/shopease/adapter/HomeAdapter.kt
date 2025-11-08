@@ -7,6 +7,7 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
@@ -28,6 +29,7 @@ class HomeAdapter(
         private const val TYPE_CATEGORIES = 2
         private const val TYPE_PRODUCT_CAROUSEL = 3
         private const val TYPE_DIVIDER = 4
+        private const val TYPE_PRODUCT_GRID = 5
     }
 
     override fun getItemViewType(position: Int): Int {
@@ -37,7 +39,7 @@ class HomeAdapter(
             is HomeItem.Categories -> TYPE_CATEGORIES
             is HomeItem.ProductCarousel -> TYPE_PRODUCT_CAROUSEL
             is HomeItem.Divider -> TYPE_DIVIDER
-            else -> throw IllegalArgumentException("Invalid view type")
+            is HomeItem.ProductGrid -> TYPE_PRODUCT_GRID
         }
     }
 
@@ -48,6 +50,7 @@ class HomeAdapter(
             TYPE_CATEGORIES -> CategoriesViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.home_categories_item, parent, false))
             TYPE_PRODUCT_CAROUSEL -> ProductCarouselViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.home_carousel_item, parent, false))
             TYPE_DIVIDER -> DividerViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.home_divider_item, parent, false))
+            TYPE_PRODUCT_GRID -> ProductGridViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.home_product_grid_item, parent, false))
             else -> throw IllegalArgumentException("Invalid view type")
         }
     }
@@ -58,20 +61,23 @@ class HomeAdapter(
             is HeaderViewHolder -> holder.bind(items[position] as HomeItem.Header)
             is CategoriesViewHolder -> holder.bind(items[position] as HomeItem.Categories)
             is ProductCarouselViewHolder -> holder.bind(items[position] as HomeItem.ProductCarousel)
+            is ProductGridViewHolder -> holder.bind(items[position] as HomeItem.ProductGrid)
             is DividerViewHolder -> { /* No binding needed */ }
         }
     }
 
     override fun getItemCount(): Int = items.size
 
-    class BannerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    // --- ViewHolder Definitions (all are now inner classes for consistent scoping) ---
+
+    inner class BannerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val bannerImage: ImageView = itemView.findViewById(R.id.banner_image)
         fun bind(banner: HomeItem.Banner) {
             Glide.with(itemView.context).load(banner.imageUrl).into(bannerImage)
         }
     }
 
-    class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val headerTitle: TextView = itemView.findViewById(R.id.header_title)
         private val seeAllButton: TextView = itemView.findViewById(R.id.see_all_button)
         fun bind(header: HomeItem.Header) {
@@ -82,17 +88,22 @@ class HomeAdapter(
         }
     }
 
-    class CategoriesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class CategoriesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val categoriesRecyclerView: RecyclerView = itemView.findViewById(R.id.categories_recycler_view)
 
         fun bind(categories: HomeItem.Categories) {
-            categoriesRecyclerView.adapter = CategoryAdapter(categories.categories) { category ->
+            val adapter = CategoryAdapter { category ->
                 val activity = itemView.context as AppCompatActivity
                 val fragment = CategoryResultsFragment.newInstance(category)
                 activity.supportFragmentManager.beginTransaction()
                     .replace(R.id.fragment_container, fragment)
                     .addToBackStack(null)
                     .commit()
+            }
+            categoriesRecyclerView.adapter = adapter
+            adapter.submitList(categories.categories)
+            if (categoriesRecyclerView.layoutManager == null) {
+                categoriesRecyclerView.layoutManager = LinearLayoutManager(itemView.context, LinearLayoutManager.HORIZONTAL, false)
             }
         }
     }
@@ -101,9 +112,21 @@ class HomeAdapter(
         private val productCarouselRecyclerView: RecyclerView = itemView.findViewById(R.id.carousel_recycler_view)
         fun bind(productCarousel: HomeItem.ProductCarousel) {
             productCarouselRecyclerView.layoutManager = LinearLayoutManager(itemView.context, LinearLayoutManager.HORIZONTAL, false)
-            productCarouselRecyclerView.adapter = ProductCarouselAdapter(productCarousel.products, cartViewModel, wishlistViewModel)
+            val adapter = ProductAdapter(cartViewModel, wishlistViewModel)
+            productCarouselRecyclerView.adapter = adapter
+            adapter.submitList(productCarousel.products)
         }
     }
 
-    class DividerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+    inner class ProductGridViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val productGridRecyclerView: RecyclerView = itemView.findViewById(R.id.product_grid_recycler_view)
+        fun bind(productGrid: HomeItem.ProductGrid) {
+            productGridRecyclerView.layoutManager = GridLayoutManager(itemView.context, 2)
+            val adapter = ProductAdapter(cartViewModel, wishlistViewModel)
+            productGridRecyclerView.adapter = adapter
+            adapter.submitList(productGrid.products)
+        }
+    }
+
+    inner class DividerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 }
