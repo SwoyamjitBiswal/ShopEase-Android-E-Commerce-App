@@ -1,18 +1,20 @@
 package com.example.shopease.adapter
 
+import android.content.res.ColorStateList
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.shopease.R
-import com.example.shopease.data.Product
+import com.example.shopease.data.ProductUiModel
 import com.example.shopease.fragments.ProductDetailFragment
 import com.example.shopease.ui.CartViewModel
 import com.example.shopease.ui.WishlistViewModel
@@ -20,7 +22,7 @@ import com.example.shopease.ui.WishlistViewModel
 class ProductAdapter(
     private val cartViewModel: CartViewModel,
     private val wishlistViewModel: WishlistViewModel
-) : ListAdapter<Product, ProductAdapter.ProductViewHolder>(ProductDiffCallback()) {
+) : ListAdapter<ProductUiModel, ProductAdapter.ProductViewHolder>(ProductUiModelDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.product_item, parent, false)
@@ -28,21 +30,32 @@ class ProductAdapter(
     }
 
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
-        val product = getItem(position)
-        holder.bind(product)
+        val productUiModel = getItem(position)
+        holder.bind(productUiModel)
     }
 
     inner class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val productImage: ImageView = itemView.findViewById(R.id.product_image)
         private val productName: TextView = itemView.findViewById(R.id.product_name)
         private val productPrice: TextView = itemView.findViewById(R.id.product_price)
-        private val addToCartButton: ImageButton = itemView.findViewById(R.id.add_to_cart_icon_button) // Corrected ID
-        private val wishlistButton: ImageButton = itemView.findViewById(R.id.product_wishlist_button) // Corrected ID
+        private val addToCartButton: ImageButton = itemView.findViewById(R.id.add_to_cart_icon_button)
+        private val wishlistButton: ImageButton = itemView.findViewById(R.id.product_wishlist_button)
 
-        fun bind(product: Product) {
+        fun bind(productUiModel: ProductUiModel) {
+            val product = productUiModel.product
             productName.text = product.name
             productPrice.text = String.format("$%.2f", product.price)
             Glide.with(itemView.context).load(product.imageUrl).into(productImage)
+
+            // Set the heart icon based on the isWishlisted flag
+            if (productUiModel.isWishlisted) {
+                wishlistButton.setImageResource(R.drawable.ic_favorite_filled)
+                wishlistButton.imageTintList = null // Use the red color from the drawable
+            } else {
+                wishlistButton.setImageResource(R.drawable.ic_favorite_border)
+                val color = ContextCompat.getColor(itemView.context, R.color.darkGray)
+                wishlistButton.imageTintList = ColorStateList.valueOf(color)
+            }
 
             itemView.setOnClickListener {
                 val activity = itemView.context as FragmentActivity
@@ -57,18 +70,22 @@ class ProductAdapter(
             }
 
             wishlistButton.setOnClickListener {
-                wishlistViewModel.addProductToWishlist(product)
+                if (productUiModel.isWishlisted) {
+                    wishlistViewModel.removeProductFromWishlist(product)
+                } else {
+                    wishlistViewModel.addProductToWishlist(product)
+                }
             }
         }
     }
 }
 
-class ProductDiffCallback : DiffUtil.ItemCallback<Product>() {
-    override fun areItemsTheSame(oldItem: Product, newItem: Product): Boolean {
-        return oldItem.id == newItem.id
+class ProductUiModelDiffCallback : DiffUtil.ItemCallback<ProductUiModel>() {
+    override fun areItemsTheSame(oldItem: ProductUiModel, newItem: ProductUiModel): Boolean {
+        return oldItem.product.id == newItem.product.id
     }
 
-    override fun areContentsTheSame(oldItem: Product, newItem: Product): Boolean {
+    override fun areContentsTheSame(oldItem: ProductUiModel, newItem: ProductUiModel): Boolean {
         return oldItem == newItem
     }
 }
