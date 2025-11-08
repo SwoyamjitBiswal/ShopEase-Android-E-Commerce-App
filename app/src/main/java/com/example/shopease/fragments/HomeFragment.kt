@@ -53,9 +53,33 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        setupViews(view)
+        setupAdapters()
+        setupSearch(view)
+        observeViewModel()
+    }
+
+    private fun setupViews(view: View) {
         categoryRecyclerView = view.findViewById(R.id.categoryRecyclerView)
         productRecyclerView = view.findViewById(R.id.productRecyclerView)
+        categoryRecyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
+        productRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
+    }
 
+    private fun setupAdapters() {
+        categoryAdapter = CategoryAdapter { category ->
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragment_container, CategoryResultsFragment.newInstance(category))
+                .addToBackStack(null)
+                .commit()
+        }
+        categoryRecyclerView.adapter = categoryAdapter
+
+        productAdapter = ProductAdapter(cartViewModel, wishlistViewModel)
+        productRecyclerView.adapter = productAdapter
+    }
+
+    private fun setupSearch(view: View) {
         val searchEditText = view.findViewById<TextInputEditText>(R.id.searchEditText)
         searchEditText.isFocusable = false
         searchEditText.isClickable = true
@@ -65,22 +89,14 @@ class HomeFragment : Fragment() {
                 .addToBackStack(null)
                 .commit()
         }
+    }
 
+    private fun observeViewModel() {
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.homeUiState.collect { uiState ->
-                    // Set up Category Adapter
-                    categoryAdapter = CategoryAdapter(uiState.categories) { category ->
-                        parentFragmentManager.beginTransaction()
-                            .replace(R.id.fragment_container, CategoryResultsFragment.newInstance(category))
-                            .addToBackStack(null)
-                            .commit()
-                    }
-                    categoryRecyclerView.adapter = categoryAdapter
-
-                    // Set up Product Adapter
-                    productAdapter = ProductAdapter(uiState.allProducts, cartViewModel, wishlistViewModel)
-                    productRecyclerView.adapter = productAdapter
+                    categoryAdapter.submitList(uiState.categories)
+                    productAdapter.submitList(uiState.allProducts)
                 }
             }
         }
