@@ -68,8 +68,6 @@ class HomeAdapter(
 
     override fun getItemCount(): Int = items.size
 
-    // --- ViewHolder Definitions (all are now inner classes for consistent scoping) ---
-
     inner class BannerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val bannerImage: ImageView = itemView.findViewById(R.id.banner_image)
         fun bind(banner: HomeItem.Banner) {
