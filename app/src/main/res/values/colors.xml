@@ -2,6 +2,7 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="darkGray">#A9A9A9</color>
 
     <!-- New Blue & Cyan Color Palette -->
     <color name="colorPrimary">#2196F3</color> <!-- Blue -->
