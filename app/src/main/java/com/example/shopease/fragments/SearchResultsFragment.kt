@@ -27,9 +27,7 @@ import kotlinx.coroutines.launch
 
 class SearchResultsFragment : Fragment() {
 
-    private lateinit var searchResultsRecyclerView: RecyclerView
     private lateinit var productAdapter: ProductAdapter
-    private lateinit var noResultsMessage: TextView
 
     private val viewModel: SearchViewModel by activityViewModels {
         ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
@@ -58,10 +56,9 @@ class SearchResultsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        searchResultsRecyclerView = view.findViewById(R.id.search_results_recycler_view)
-        noResultsMessage = view.findViewById(R.id.no_results_message)
+        val searchResultsRecyclerView: RecyclerView = view.findViewById(R.id.search_results_recycler_view)
+        val noResultsMessage: TextView = view.findViewById(R.id.no_results_message)
 
-        // Create the adapter only once
         productAdapter = ProductAdapter(cartViewModel, wishlistViewModel)
         searchResultsRecyclerView.adapter = productAdapter
         searchResultsRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
@@ -75,7 +72,6 @@ class SearchResultsFragment : Fragment() {
                     } else {
                         noResultsMessage.visibility = View.GONE
                         searchResultsRecyclerView.visibility = View.VISIBLE
-                        // Use submitList for efficient updates
                         productAdapter.submitList(products)
                     }
                 }
