@@ -61,6 +61,9 @@ class SearchResultsFragment : Fragment() {
         searchResultsRecyclerView = view.findViewById(R.id.search_results_recycler_view)
         noResultsMessage = view.findViewById(R.id.no_results_message)
 
+        // Create the adapter only once
+        productAdapter = ProductAdapter(cartViewModel, wishlistViewModel)
+        searchResultsRecyclerView.adapter = productAdapter
         searchResultsRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
 
         viewLifecycleOwner.lifecycleScope.launch {
@@ -72,8 +75,8 @@ class SearchResultsFragment : Fragment() {
                     } else {
                         noResultsMessage.visibility = View.GONE
                         searchResultsRecyclerView.visibility = View.VISIBLE
-                        productAdapter = ProductAdapter(products, cartViewModel, wishlistViewModel)
-                        searchResultsRecyclerView.adapter = productAdapter
+                        // Use submitList for efficient updates
+                        productAdapter.submitList(products)
                     }
                 }
             }
