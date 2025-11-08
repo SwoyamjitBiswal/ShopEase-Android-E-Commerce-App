@@ -2,7 +2,7 @@ package com.example.shopease.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.shopease.data.Product
+import com.example.shopease.data.ProductUiModel
 import com.example.shopease.data.ShoppingRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -11,35 +11,42 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 
+enum class SortOrder { RELEVANCE, PRICE_LOW_TO_HIGH, PRICE_HIGH_TO_LOW, RATING }
+
 class SearchViewModel(private val repository: ShoppingRepository) : ViewModel() {
 
     private val _searchQuery = MutableStateFlow("")
-    val searchQuery: StateFlow<String> = _searchQuery.asStateFlow()
+    val searchQuery = _searchQuery.asStateFlow()
 
     private val _sortOrder = MutableStateFlow(SortOrder.RELEVANCE)
-    val sortOrder: StateFlow<SortOrder> = _sortOrder.asStateFlow()
+    val sortOrder = _sortOrder.asStateFlow()
 
-    val searchResults: StateFlow<List<Product>> = combine(
+    val searchResults: StateFlow<List<ProductUiModel>> = combine(
         repository.allProducts,
-        searchQuery,
-        sortOrder
-    ) { products, query, sortOrder ->
-        val filteredList = if (query.isBlank()) {
-            products
+        repository.allWishlistItems,
+        _searchQuery,
+        _sortOrder
+    ) { products, wishlistItems, query, sortOrder ->
+        val wishlistedIds = wishlistItems.map { it.productId }.toSet()
+
+        val filteredProducts = if (query.isBlank()) {
+            emptyList()
         } else {
-            val categories = products.map { it.category }.distinct()
-            if (categories.any { it.equals(query, ignoreCase = true) }) {
-                products.filter { it.category.equals(query, ignoreCase = true) }
-            } else {
-                products.filter { it.name.contains(query, ignoreCase = true) }
-            }
+            products.filter { it.name.contains(query, ignoreCase = true) || it.category.contains(query, ignoreCase = true) }
         }
 
-        when (sortOrder) {
-            SortOrder.RELEVANCE -> filteredList // Default, no change
-            SortOrder.PRICE_LOW_TO_HIGH -> filteredList.sortedBy { it.price }
-            SortOrder.PRICE_HIGH_TO_LOW -> filteredList.sortedByDescending { it.price }
-            SortOrder.RATING -> filteredList.sortedByDescending { it.rating }
+        val sortedProducts = when (sortOrder) {
+            SortOrder.RELEVANCE -> filteredProducts // Simple relevance, can be improved
+            SortOrder.PRICE_LOW_TO_HIGH -> filteredProducts.sortedBy { it.price }
+            SortOrder.PRICE_HIGH_TO_LOW -> filteredProducts.sortedByDescending { it.price }
+            SortOrder.RATING -> filteredProducts.sortedByDescending { it.rating } // Assuming Product has a rating
+        }
+
+        sortedProducts.map { product ->
+            ProductUiModel(
+                product = product,
+                isWishlisted = wishlistedIds.contains(product.id)
+            )
         }
     }.stateIn(
         scope = viewModelScope,
@@ -54,11 +61,4 @@ class SearchViewModel(private val repository: ShoppingRepository) : ViewModel() 
     fun onSortOrderChanged(sortOrder: SortOrder) {
         _sortOrder.value = sortOrder
     }
-}
-
-enum class SortOrder {
-    RELEVANCE,
-    PRICE_LOW_TO_HIGH,
-    PRICE_HIGH_TO_LOW,
-    RATING
 }
