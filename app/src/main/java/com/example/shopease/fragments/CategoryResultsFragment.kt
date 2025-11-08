@@ -62,6 +62,9 @@ class CategoryResultsFragment : Fragment() {
         categoryResultsRecyclerView = view.findViewById(R.id.category_results_recycler_view)
         noResultsMessage = view.findViewById(R.id.no_results_message)
 
+        // Create the adapter only once
+        productAdapter = ProductAdapter(cartViewModel, wishlistViewModel)
+        categoryResultsRecyclerView.adapter = productAdapter
         categoryResultsRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
 
         // Set the toolbar title
@@ -78,8 +81,8 @@ class CategoryResultsFragment : Fragment() {
                     } else {
                         noResultsMessage.visibility = View.GONE
                         categoryResultsRecyclerView.visibility = View.VISIBLE
-                        productAdapter = ProductAdapter(products, cartViewModel, wishlistViewModel)
-                        categoryResultsRecyclerView.adapter = productAdapter
+                        // Use submitList for efficient updates
+                        productAdapter.submitList(products)
                     }
                 }
             }
