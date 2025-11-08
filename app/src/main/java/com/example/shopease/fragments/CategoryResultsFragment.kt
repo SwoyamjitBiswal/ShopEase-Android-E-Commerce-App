@@ -24,9 +24,7 @@ import kotlinx.coroutines.launch
 
 class CategoryResultsFragment : Fragment() {
 
-    private lateinit var categoryResultsRecyclerView: RecyclerView
     private lateinit var productAdapter: ProductAdapter
-    private lateinit var noResultsMessage: TextView
 
     private val viewModel: SearchViewModel by activityViewModels {
         ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
@@ -59,19 +57,18 @@ class CategoryResultsFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        categoryResultsRecyclerView = view.findViewById(R.id.category_results_recycler_view)
-        noResultsMessage = view.findViewById(R.id.no_results_message)
+        val categoryResultsRecyclerView: RecyclerView = view.findViewById(R.id.category_results_recycler_view)
+        val noResultsMessage: TextView = view.findViewById(R.id.no_results_message)
 
-        // Create the adapter only once
+        // Create the adapter with the correct (simpler) constructor
         productAdapter = ProductAdapter(cartViewModel, wishlistViewModel)
         categoryResultsRecyclerView.adapter = productAdapter
         categoryResultsRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
 
-        // Set the toolbar title
         (requireActivity() as AppCompatActivity).supportActionBar?.title = category
-
         viewModel.onSearchQueryChanged(category ?: "")
 
+        // The UI now collects a single, complete state from the SearchViewModel
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.searchResults.collect { products ->
@@ -81,7 +78,6 @@ class CategoryResultsFragment : Fragment() {
                     } else {
                         noResultsMessage.visibility = View.GONE
                         categoryResultsRecyclerView.visibility = View.VISIBLE
-                        // Use submitList for efficient updates
                         productAdapter.submitList(products)
                     }
                 }
@@ -91,7 +87,6 @@ class CategoryResultsFragment : Fragment() {
 
     override fun onStop() {
         super.onStop()
-        // Reset the toolbar title when leaving the fragment
         (requireActivity() as AppCompatActivity).supportActionBar?.title = getString(R.string.app_name)
     }
 
