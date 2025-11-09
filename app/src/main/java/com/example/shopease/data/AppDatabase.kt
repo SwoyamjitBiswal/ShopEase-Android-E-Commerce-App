@@ -6,8 +6,12 @@ import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 
-@Database(entities = [Product::class, CartItem::class, WishlistItem::class, Order::class, ShippingAddress::class], version = 10, exportSchema = false)
-@TypeConverters(ReviewListConverter::class, DateConverter::class, CartItemListConverter::class)
+@Database(
+    entities = [Product::class, CartItem::class, WishlistItem::class, Order::class, ShippingAddress::class, Review::class],
+    version = 1, 
+    exportSchema = false
+)
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
 
     abstract fun productDao(): ProductDao
@@ -15,22 +19,18 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun wishlistDao(): WishlistDao
     abstract fun orderDao(): OrderDao
     abstract fun shippingAddressDao(): ShippingAddressDao
+    abstract fun reviewDao(): ReviewDao
 
     companion object {
         @Volatile
-        private var INSTANCE: AppDatabase? = null
+        private var Instance: AppDatabase? = null
 
         fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context.applicationContext,
-                    AppDatabase::class.java,
-                    "shopease_database"
-                )
-                .fallbackToDestructiveMigration()
-                .build()
-                INSTANCE = instance
-                instance
+            return Instance ?: synchronized(this) {
+                Room.databaseBuilder(context, AppDatabase::class.java, "shopease_database")
+                    .fallbackToDestructiveMigration()
+                    .build()
+                    .also { Instance = it }
             }
         }
     }
