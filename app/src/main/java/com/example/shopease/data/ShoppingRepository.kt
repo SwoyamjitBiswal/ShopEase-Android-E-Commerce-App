@@ -16,7 +16,8 @@ class ShoppingRepository(
     private val cartDao: CartDao,
     private val wishlistDao: WishlistDao,
     private val orderDao: OrderDao,
-    private val shippingAddressDao: ShippingAddressDao
+    private val shippingAddressDao: ShippingAddressDao,
+    private val reviewDao: ReviewDao
 ) {
 
     private val firebaseDb = FirebaseDatabase.getInstance()
@@ -26,44 +27,12 @@ class ShoppingRepository(
     val allCartItems: Flow<List<CartItem>> = cartDao.getAllCartItems().distinctUntilChanged()
     val allWishlistItems: Flow<List<WishlistItem>> = wishlistDao.getAllWishlistItems().distinctUntilChanged()
     val allOrders: Flow<List<Order>> = orderDao.getAllOrders().distinctUntilChanged()
+    val allReviews: Flow<List<Review>> = reviewDao.getAllReviews().distinctUntilChanged()
 
     init {
-        val productsRef = firebaseDb.getReference("products")
-        productsRef.keepSynced(true)
-
-        productsRef.addValueEventListener(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                CoroutineScope(Dispatchers.IO).launch {
-                    val products = snapshot.children.mapNotNull { it.getValue(Product::class.java) }
-                    productDao.insertAll(products)
-                }
-            }
-            override fun onCancelled(error: DatabaseError) { /* Handle error */ }
-        })
-
-        FirebaseAuth.getInstance().addAuthStateListener { auth ->
-            val user = auth.currentUser
-            if (user != null) {
-                attachUserSyncListeners(firebaseDb.getReference("users").child(user.uid))
-            } else {
-                CoroutineScope(Dispatchers.IO).launch {
-                    cartDao.clearCart()
-                    wishlistDao.clearWishlist()
-                    orderDao.clearOrders()
-                }
-            }
-        }
-    }
-
-    private fun attachUserSyncListeners(userRef: com.google.firebase.database.DatabaseReference) {
-        // ... (user sync listeners)
-    }
-
-    private fun createSyncListener(onData: (DataSnapshot) -> Unit): ValueEventListener {
-        return object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) = onData(snapshot)
-            override fun onCancelled(error: DatabaseError) { /* Handle error */ }
-        }
+        syncProductsFromFirebase()
+        syncReviewsFromFirebase()
+        listenForAuthChanges()
     }
 
     // Product Functions
@@ -139,5 +108,66 @@ class ShoppingRepository(
     suspend fun deleteAddress(address: ShippingAddress) {
         shippingAddressDao.deleteAddress(address)
         userId?.let { firebaseDb.getReference("users").child(it).child("shippingAddresses").child(address.id).removeValue() }
+    }
+
+    // Review Functions
+    suspend fun submitReview(productId: String, review: Review) {
+        val reviewId = firebaseDb.getReference("reviews").child(productId).push().key ?: ""
+        val reviewWithId = review.copy(id = reviewId, productId = productId)
+        firebaseDb.getReference("reviews").child(productId).child(reviewId).setValue(reviewWithId)
+    }
+
+    // --- Data Sync Functions ---
+
+    private fun syncProductsFromFirebase() {
+        val productsRef = firebaseDb.getReference("products")
+        productsRef.keepSynced(true)
+        productsRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val products = snapshot.children.mapNotNull { it.getValue(Product::class.java) }
+                    productDao.insertAll(products)
+                }
+            }
+            override fun onCancelled(error: DatabaseError) { /* Handle error */ }
+        })
+    }
+
+    private fun syncReviewsFromFirebase() {
+        val reviewsRef = firebaseDb.getReference("reviews")
+        reviewsRef.addValueEventListener(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                CoroutineScope(Dispatchers.IO).launch {
+                    val reviews = mutableListOf<Review>()
+                    snapshot.children.forEach { productIdSnapshot ->
+                        productIdSnapshot.children.forEach { reviewSnapshot ->
+                            reviewSnapshot.getValue(Review::class.java)?.let { review ->
+                                reviews.add(review.copy(productId = productIdSnapshot.key ?: ""))
+                            }
+                        }
+                    }
+                    reviewDao.insertAll(reviews)
+                }
+            }
+            override fun onCancelled(error: DatabaseError) { /* Handle error */ }
+        })
+    }
+
+    private fun listenForAuthChanges() {
+        FirebaseAuth.getInstance().addAuthStateListener { auth ->
+            if (auth.currentUser != null) {
+                attachUserSyncListeners(firebaseDb.getReference("users").child(auth.currentUser!!.uid))
+            } else {
+                CoroutineScope(Dispatchers.IO).launch {
+                    cartDao.clearCart()
+                    wishlistDao.clearWishlist()
+                    orderDao.clearOrders()
+                }
+            }
+        }
+    }
+
+    private fun attachUserSyncListeners(userRef: com.google.firebase.database.DatabaseReference) {
+        // Here you would add listeners to sync user-specific data like cart, wishlist, orders, etc.
     }
 }
