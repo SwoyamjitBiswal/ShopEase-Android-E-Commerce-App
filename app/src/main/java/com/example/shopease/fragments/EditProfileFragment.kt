@@ -56,7 +56,7 @@ class EditProfileFragment : Fragment() {
             nameEditText.setText(user.displayName)
             emailEditText.setText(user.email)
             emailEditText.isEnabled = false // Don't allow email editing
-            Glide.with(this).load(user.photoUrl).into(profileImage)
+            Glide.with(this).load(user.photoUrl).placeholder(R.drawable.ic_person).into(profileImage)
         }
 
         profileImage.setOnClickListener {
@@ -66,10 +66,11 @@ class EditProfileFragment : Fragment() {
         }
 
         saveButton.setOnClickListener {
+            Toast.makeText(requireContext(), "Updating profile...", Toast.LENGTH_SHORT).show()
             if (selectedImageUri != null) {
                 uploadImageAndUpdateProfile()
             } else {
-                updateProfile(null)
+                updateProfile(user?.photoUrl)
             }
         }
     }
@@ -96,7 +97,7 @@ class EditProfileFragment : Fragment() {
 
         val profileUpdates = UserProfileChangeRequest.Builder()
             .setDisplayName(newName)
-            .apply { if (imageUrl != null) setPhotoUri(imageUrl) }
+            .setPhotoUri(imageUrl)
             .build()
 
         user.updateProfile(profileUpdates)
