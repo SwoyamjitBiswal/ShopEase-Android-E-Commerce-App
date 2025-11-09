@@ -53,8 +53,8 @@ dependencies {
     ksp(libs.androidx.room.compiler)
     implementation("de.hdodenhof:circleimageview:3.1.0")
     implementation("com.google.firebase:firebase-database")
-    implementation("com.google.firebase:firebase-storage-ktx") // Added Firebase Storage
-    implementation("com.google.code.gson:gson:2.10.1")
+    implementation("com.google.firebase:firebase-storage-ktx") 
+    implementation(libs.gson) // Replaced with version catalog reference
     implementation("com.github.bumptech.glide:glide:4.12.0")
     implementation("com.google.android.gms:play-services-auth:21.0.0")
     implementation(platform("com.google.firebase:firebase-bom:33.1.0"))
