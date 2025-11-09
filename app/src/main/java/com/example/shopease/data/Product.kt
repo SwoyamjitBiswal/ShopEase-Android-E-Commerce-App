@@ -8,7 +8,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 @Entity(tableName = "products")
-@TypeConverters(ReviewListConverter::class)
+@TypeConverters(ReviewListConverter::class) // Use the new converter
 data class Product(
     @PrimaryKey
     val id: Long = 0,
