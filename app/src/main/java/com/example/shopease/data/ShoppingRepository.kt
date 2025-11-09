@@ -71,7 +71,7 @@ class ShoppingRepository(
         cartDao.clearCart()
         userId?.let { firebaseDb.getReference("users").child(it).child("cart").removeValue() }
     }
-
+    
     // Wishlist Functions
     suspend fun addWishlistItem(wishlistItem: WishlistItem) {
         wishlistDao.insertWishlistItem(wishlistItem)
@@ -109,15 +109,6 @@ class ShoppingRepository(
         shippingAddressDao.deleteAddress(address)
         userId?.let { firebaseDb.getReference("users").child(it).child("shippingAddresses").child(address.id).removeValue() }
     }
-
-    // Review Functions
-    suspend fun submitReview(productId: String, review: Review) {
-        val reviewId = firebaseDb.getReference("reviews").child(productId).push().key ?: ""
-        val reviewWithId = review.copy(id = reviewId, productId = productId)
-        firebaseDb.getReference("reviews").child(productId).child(reviewId).setValue(reviewWithId)
-    }
-
-    // --- Data Sync Functions ---
 
     private fun syncProductsFromFirebase() {
         val productsRef = firebaseDb.getReference("products")
@@ -168,6 +159,12 @@ class ShoppingRepository(
     }
 
     private fun attachUserSyncListeners(userRef: com.google.firebase.database.DatabaseReference) {
-        // Here you would add listeners to sync user-specific data like cart, wishlist, orders, etc.
+        // ... (user sync listeners should be implemented here to sync cart, wishlist, orders etc. from Firebase)
+    }
+
+    suspend fun submitReview(productId: String, review: Review) {
+        val reviewId = firebaseDb.getReference("reviews").child(productId).push().key ?: ""
+        val reviewWithId = review.copy(id = reviewId, productId = productId)
+        firebaseDb.getReference("reviews").child(productId).child(reviewId).setValue(reviewWithId)
     }
 }
