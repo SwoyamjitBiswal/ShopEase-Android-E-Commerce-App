@@ -4,25 +4,70 @@
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-  <path
-      android:pathData="M34,34h40v40h-40z">
-    <aapt:attr name="android:fillColor">
-      <gradient
-          android:endX="74"
-          android:endY="74"
-          android:startX="34"
-          android:startY="34"
-          android:type="linear">
-        <item
-            android:color="#FF673AB7"
-            android:offset="0"/>
-        <item
-            android:color="#FFFF4081"
-            android:offset="1"/>
-      </gradient>
-    </aapt:attr>
-  </path>
-  <path
-      android:fillColor="#FFFFFF"
-      android:pathData="M54,22c-8.8,0 -16,7.2 -16,16v2h32v-2c0,-8.8 -7.2,-16 -16,-16z"/>
+
+    <!-- Drop shadow behind bag -->
+    <path
+        android:pathData="M38,44 h32 a6,6 0,0,1,6,6 v30 a6,6 0,0,1,-6,6 h-32 a6,6 0,0,1,-6,-6 v-30 a6,6 0,0,1,6,-6z"
+        android:fillColor="#33000000"
+        android:translateX="2"
+        android:translateY="2" />
+
+    <!-- Golden gradient bag body -->
+    <path
+        android:pathData="M38,44 h32 a6,6 0,0,1,6,6 v30 a6,6 0,0,1,-6,6 h-32 a6,6 0,0,1,-6,-6 v-30 a6,6 0,0,1,6,-6z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startColor="#FFD700"
+                android:centerColor="#FFC107"
+                android:endColor="#B8860B"
+                android:angle="90" />
+        </aapt:attr>
+    </path>
+
+    <!-- Handle -->
+    <path
+        android:pathData="M44,44 a10,10 0,0,1,20,0 h-4 a6,6 0,0,0,-12,0z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:type="linear"
+                android:startColor="#FFE97F"
+                android:centerColor="#FFD700"
+                android:endColor="#B8860B"
+                android:angle="270" />
+        </aapt:attr>
+    </path>
+
+    <!-- Subtle highlight (top reflection) -->
+    <path
+        android:pathData="M38,46 h32 a6,6 0,0,1,6,6 v2 h-44 v-2 a6,6 0,0,1,6,-6z"
+        android:fillColor="#40FFFFFF" />
+
+    <!-- Text: ShopEase -->
+    <group
+        android:translateX="18"
+        android:translateY="88"
+        android:scaleX="0.9"
+        android:scaleY="0.9">
+
+        <!-- Text shadow -->
+        <path
+            android:pathData="M0,0 h68 v5 h-68z"
+            android:fillColor="#22000000"
+            android:translateY="2" />
+
+        <!-- Golden text bar (placeholder for text) -->
+        <path
+            android:pathData="M0,0 h68 v5 h-68z">
+            <aapt:attr name="android:fillColor">
+                <gradient
+                    android:type="linear"
+                    android:startColor="#FFE97F"
+                    android:centerColor="#FFD700"
+                    android:endColor="#B8860B"
+                    android:angle="90" />
+            </aapt:attr>
+        </path>
+    </group>
+
 </vector>
