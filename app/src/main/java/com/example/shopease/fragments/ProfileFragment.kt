@@ -19,6 +19,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.google.android.material.button.MaterialButton
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.auth.GoogleAuthProvider
 import de.hdodenhof.circleimageview.CircleImageView
 
@@ -40,6 +41,18 @@ class ProfileFragment : Fragment() {
     private lateinit var editProfileButton: ImageButton
     private lateinit var adminLoginButton: TextView
 
+    private val googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+        if (result.resultCode == Activity.RESULT_OK) {
+            val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+            try {
+                val account = task.getResult(ApiException::class.java)!!
+                firebaseAuthWithGoogle(account.idToken!!)
+            } catch (e: ApiException) {
+                Toast.makeText(requireContext(), "Google Sign-In failed: ${e.statusCode}", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -50,7 +63,17 @@ class ProfileFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        setupViews(view)
+        setupClickListeners()
+        setupFirebaseAuth()
+    }
 
+    override fun onStart() {
+        super.onStart()
+        updateUI(firebaseAuth.currentUser)
+    }
+
+    private fun setupViews(view: View) {
         profileImage = view.findViewById(R.id.profile_image)
         profileName = view.findViewById(R.id.profile_name)
         profileEmail = view.findViewById(R.id.profile_email)
@@ -63,104 +86,45 @@ class ProfileFragment : Fragment() {
         languageButton = view.findViewById(R.id.language_button)
         editProfileButton = view.findViewById(R.id.edit_profile_button)
         adminLoginButton = view.findViewById(R.id.admin_login_button_profile)
+    }
 
-        myOrdersButton.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, MyOrdersFragment())
-                .addToBackStack(null)
-                .commit()
-        }
+    private fun setupClickListeners() {
+        myOrdersButton.setOnClickListener { navigateTo(MyOrdersFragment()) }
+        shippingAddressesButton.setOnClickListener { navigateTo(ShippingAddressesFragment()) }
+        paymentMethodsButton.setOnClickListener { navigateTo(PaymentMethodsFragment()) }
+        notificationsButton.setOnClickListener { navigateTo(NotificationsSettingsFragment()) }
+        languageButton.setOnClickListener { navigateTo(LanguageSettingsFragment()) }
+        editProfileButton.setOnClickListener { navigateTo(EditProfileFragment()) }
+        adminLoginButton.setOnClickListener { navigateTo(AdminLoginFragment()) }
+        googleLoginButton.setOnClickListener { signIn() }
+        logoutButton.setOnClickListener { signOut() }
+    }
 
-        shippingAddressesButton.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, ShippingAddressesFragment())
-                .addToBackStack(null)
-                .commit()
-        }
-
-        paymentMethodsButton.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, PaymentMethodsFragment())
-                .addToBackStack(null)
-                .commit()
-        }
-
-        notificationsButton.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, NotificationsSettingsFragment())
-                .addToBackStack(null)
-                .commit()
-        }
-
-        languageButton.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, LanguageSettingsFragment())
-                .addToBackStack(null)
-                .commit()
-        }
-
-        editProfileButton.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, EditProfileFragment())
-                .addToBackStack(null)
-                .commit()
-        }
-
-        adminLoginButton.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, AdminLoginFragment())
-                .addToBackStack(null)
-                .commit()
-        }
-
-        googleLoginButton.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, LoginFragment())
-                .addToBackStack(null)
-                .commit()
-        }
-
-        // Configure Google Sign-In
+    private fun setupFirebaseAuth() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestIdToken(getString(R.string.default_web_client_id))
             .requestEmail()
             .build()
-
         googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
         firebaseAuth = FirebaseAuth.getInstance()
     }
 
-    override fun onResume() {
-        super.onResume()
-        val currentUser = firebaseAuth.currentUser
-        updateUI(currentUser)
+    private fun signIn() {
+        val signInIntent = googleSignInClient.signInIntent
+        googleSignInLauncher.launch(signInIntent)
     }
 
-    private fun updateUI(user: com.google.firebase.auth.FirebaseUser?) {
-        if (user != null) {
-            profileName.text = if (!user.displayName.isNullOrEmpty()) user.displayName else "ShopEase User"
-            profileEmail.text = user.email ?: "No email provided"
-
-            Glide.with(this)
-                .load(user.photoUrl)
-                .placeholder(R.drawable.ic_person)
-                .error(R.drawable.ic_person)
-                .circleCrop()
-                .into(profileImage)
-
-            googleLoginButton.visibility = View.GONE
-            logoutButton.visibility = View.VISIBLE
-            editProfileButton.visibility = View.VISIBLE
-            logoutButton.setOnClickListener { signOut() }
-        } else {
-            profileName.text = getString(R.string.guest)
-            profileEmail.text = getString(R.string.guest_email)
-            profileImage.setImageResource(R.drawable.ic_person)
-
-            googleLoginButton.visibility = View.VISIBLE
-            logoutButton.visibility = View.GONE
-            editProfileButton.visibility = View.GONE
-        }
+    private fun firebaseAuthWithGoogle(idToken: String) {
+        val credential = GoogleAuthProvider.getCredential(idToken, null)
+        firebaseAuth.signInWithCredential(credential)
+            .addOnCompleteListener(requireActivity()) { task ->
+                if (task.isSuccessful) {
+                    updateUI(firebaseAuth.currentUser)
+                } else {
+                    Toast.makeText(requireContext(), "Firebase Authentication failed.", Toast.LENGTH_SHORT).show()
+                    updateUI(null)
+                }
+            }
     }
 
     private fun signOut() {
@@ -168,5 +132,30 @@ class ProfileFragment : Fragment() {
         googleSignInClient.signOut().addOnCompleteListener(requireActivity()) {
             updateUI(null)
         }
+    }
+
+    private fun updateUI(user: FirebaseUser?) {
+        if (user != null) {
+            profileName.text = user.displayName ?: "ShopEase User"
+            profileEmail.text = user.email
+            Glide.with(this).load(user.photoUrl).placeholder(R.drawable.ic_person).into(profileImage)
+            googleLoginButton.visibility = View.GONE
+            logoutButton.visibility = View.VISIBLE
+            editProfileButton.visibility = View.VISIBLE
+        } else {
+            profileName.text = getString(R.string.guest)
+            profileEmail.text = getString(R.string.guest_email)
+            profileImage.setImageResource(R.drawable.ic_person)
+            googleLoginButton.visibility = View.VISIBLE
+            logoutButton.visibility = View.GONE
+            editProfileButton.visibility = View.GONE
+        }
+    }
+
+    private fun navigateTo(fragment: Fragment) {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, fragment)
+            .addToBackStack(null)
+            .commit()
     }
 }
