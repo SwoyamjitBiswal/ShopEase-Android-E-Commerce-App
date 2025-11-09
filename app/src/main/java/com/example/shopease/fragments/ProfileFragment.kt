@@ -5,7 +5,6 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageButton
 import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
@@ -31,14 +30,14 @@ class ProfileFragment : Fragment() {
     private lateinit var profileImage: CircleImageView
     private lateinit var profileName: TextView
     private lateinit var profileEmail: TextView
-    private lateinit var googleLoginButton: MaterialButton
+    private lateinit var loginSignupButton: MaterialButton
     private lateinit var logoutButton: MaterialButton
     private lateinit var myOrdersButton: TextView
     private lateinit var shippingAddressesButton: TextView
     private lateinit var paymentMethodsButton: TextView
     private lateinit var notificationsButton: TextView
     private lateinit var languageButton: TextView
-    private lateinit var editProfileButton: ImageButton
+    private lateinit var editProfileButton: TextView
     private lateinit var adminLoginButton: TextView
 
     private val googleSignInLauncher = registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
@@ -77,7 +76,7 @@ class ProfileFragment : Fragment() {
         profileImage = view.findViewById(R.id.profile_image)
         profileName = view.findViewById(R.id.profile_name)
         profileEmail = view.findViewById(R.id.profile_email)
-        googleLoginButton = view.findViewById(R.id.google_login_button)
+        loginSignupButton = view.findViewById(R.id.login_signup_button)
         logoutButton = view.findViewById(R.id.logout_button)
         myOrdersButton = view.findViewById(R.id.my_orders_button)
         shippingAddressesButton = view.findViewById(R.id.shipping_addresses_button)
@@ -96,7 +95,7 @@ class ProfileFragment : Fragment() {
         languageButton.setOnClickListener { navigateTo(LanguageSettingsFragment()) }
         editProfileButton.setOnClickListener { navigateTo(EditProfileFragment()) }
         adminLoginButton.setOnClickListener { navigateTo(AdminLoginFragment()) }
-        googleLoginButton.setOnClickListener { signIn() }
+        loginSignupButton.setOnClickListener { navigateTo(LoginFragment()) }
         logoutButton.setOnClickListener { signOut() }
     }
 
@@ -107,6 +106,10 @@ class ProfileFragment : Fragment() {
             .build()
         googleSignInClient = GoogleSignIn.getClient(requireActivity(), gso)
         firebaseAuth = FirebaseAuth.getInstance()
+
+        firebaseAuth.addAuthStateListener { auth ->
+            updateUI(auth.currentUser)
+        }
     }
 
     private fun signIn() {
@@ -119,19 +122,16 @@ class ProfileFragment : Fragment() {
         firebaseAuth.signInWithCredential(credential)
             .addOnCompleteListener(requireActivity()) { task ->
                 if (task.isSuccessful) {
-                    updateUI(firebaseAuth.currentUser)
+                    // AuthStateListener will handle UI update
                 } else {
                     Toast.makeText(requireContext(), "Firebase Authentication failed.", Toast.LENGTH_SHORT).show()
-                    updateUI(null)
                 }
             }
     }
 
     private fun signOut() {
         firebaseAuth.signOut()
-        googleSignInClient.signOut().addOnCompleteListener(requireActivity()) {
-            updateUI(null)
-        }
+        googleSignInClient.signOut()
     }
 
     private fun updateUI(user: FirebaseUser?) {
@@ -139,14 +139,14 @@ class ProfileFragment : Fragment() {
             profileName.text = user.displayName ?: "ShopEase User"
             profileEmail.text = user.email
             Glide.with(this).load(user.photoUrl).placeholder(R.drawable.ic_person).into(profileImage)
-            googleLoginButton.visibility = View.GONE
+            loginSignupButton.visibility = View.GONE
             logoutButton.visibility = View.VISIBLE
             editProfileButton.visibility = View.VISIBLE
         } else {
             profileName.text = getString(R.string.guest)
             profileEmail.text = getString(R.string.guest_email)
             profileImage.setImageResource(R.drawable.ic_person)
-            googleLoginButton.visibility = View.VISIBLE
+            loginSignupButton.visibility = View.VISIBLE
             logoutButton.visibility = View.GONE
             editProfileButton.visibility = View.GONE
         }
