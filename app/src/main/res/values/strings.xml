@@ -23,4 +23,5 @@
     <string name="add_an_address_to_see_it_here">Add an address to see it here.</string>
     <string name="navigation_icon_desc">Open navigation menu</string>
     <string name="bottom_navigation_desc">Bottom navigation bar</string>
+    <string name="edit_profile">Edit Profile</string>
 </resources>
