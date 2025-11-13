@@ -12,7 +12,8 @@ class AppDataContainer(private val context: Context) : AppContainer {
             database.wishlistDao(),
             database.orderDao(),
             database.shippingAddressDao(),
-            database.reviewDao() // Added the missing dependency
+            database.reviewDao(),
+            database.paymentMethodDao()
         )
     }
 }
