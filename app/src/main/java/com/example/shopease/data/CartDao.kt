@@ -11,8 +11,9 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface CartDao {
 
-    @Query("SELECT * FROM cart_items")
-    fun getAllCartItems(): Flow<List<CartItem>>
+    // This query now joins the cart and product tables
+    @Query("SELECT * FROM cart_items INNER JOIN products ON cart_items.productId = products.id")
+    fun getCartItemsWithProducts(): Flow<List<CartItemWithProduct>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertCartItem(cartItem: CartItem)
