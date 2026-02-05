@@ -3,13 +3,28 @@ package com.example.shopease.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.shopease.R
 import com.example.shopease.data.PaymentMethod
 
-class PaymentMethodAdapter(private val paymentMethods: List<PaymentMethod>) : RecyclerView.Adapter<PaymentMethodAdapter.PaymentMethodViewHolder>() {
+class PaymentMethodAdapter(
+    private val onDeleteClicked: (PaymentMethod) -> Unit
+) : ListAdapter<PaymentMethod, PaymentMethodAdapter.PaymentMethodViewHolder>(
+    object : DiffUtil.ItemCallback<PaymentMethod>() {
+        override fun areItemsTheSame(oldItem: PaymentMethod, newItem: PaymentMethod): Boolean {
+            return oldItem.id == newItem.id
+        }
+
+        override fun areContentsTheSame(oldItem: PaymentMethod, newItem: PaymentMethod): Boolean {
+            return oldItem == newItem
+        }
+    }
+) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PaymentMethodViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.payment_method_item, parent, false)
@@ -17,23 +32,25 @@ class PaymentMethodAdapter(private val paymentMethods: List<PaymentMethod>) : Re
     }
 
     override fun onBindViewHolder(holder: PaymentMethodViewHolder, position: Int) {
-        val paymentMethod = paymentMethods[position]
-        holder.bind(paymentMethod)
+        val paymentMethod = getItem(position)
+        holder.bind(paymentMethod, onDeleteClicked)
     }
 
-    override fun getItemCount(): Int {
-        return paymentMethods.size
-    }
+    class PaymentMethodViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val cardIcon: ImageView = itemView.findViewById(R.id.card_icon)
+        private val cardNumberTextView: TextView = itemView.findViewById(R.id.card_number)
+        private val deleteButton: ImageButton = itemView.findViewById(R.id.delete_button)
 
-    inner class PaymentMethodViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val cardTypeIcon: ImageView = itemView.findViewById(R.id.card_type_icon)
-        private val cardNumber: TextView = itemView.findViewById(R.id.card_number)
-        private val cardExpiry: TextView = itemView.findViewById(R.id.card_expiry)
+        fun bind(paymentMethod: PaymentMethod, onDeleteClicked: (PaymentMethod) -> Unit) {
+            // Correctly derive the last four digits from the full card number
+            cardNumberTextView.text = "**** **** **** ${paymentMethod.cardNumber.takeLast(4)}"
+            deleteButton.setOnClickListener { onDeleteClicked(paymentMethod) }
 
-        fun bind(paymentMethod: PaymentMethod) {
-            cardNumber.text = "${paymentMethod.cardType} ending in ${paymentMethod.lastFourDigits}"
-            cardExpiry.text = "Expires ${paymentMethod.expiryDate}"
-            // Here you could set the icon based on the card type
+            when (paymentMethod.cardType) {
+                "Visa" -> cardIcon.setImageResource(R.drawable.ic_visa)
+                "MasterCard" -> cardIcon.setImageResource(R.drawable.ic_mastercard)
+                else -> cardIcon.setImageResource(R.drawable.ic_credit_card)
+            }
         }
     }
 }

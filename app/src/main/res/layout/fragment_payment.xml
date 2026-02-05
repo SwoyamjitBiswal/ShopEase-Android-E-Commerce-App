@@ -69,11 +69,20 @@
 
         </LinearLayout>
 
+        <TextView
+            android:id="@+id/total_amount_text_view" 
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="24dp"
+            android:textAppearance="?attr/textAppearanceHeadline6"
+            tools:text="Total: $123.45" />
+
         <com.google.android.material.button.MaterialButton
             android:id="@+id/place_order_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="8dp"
             android:text="Place Order" />
 
     </LinearLayout>

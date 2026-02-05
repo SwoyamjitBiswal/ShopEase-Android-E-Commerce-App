@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Primary Color Palette (Dark Theme) -->
+    <color name="colorPrimary">#3B6D9C</color> <!-- Lighter Deep Ocean Blue -->
+    <color name="colorPrimaryVariant">#2A4B6B</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
+
+    <!-- Secondary Color Palette (Dark Theme) -->
+    <color name="colorSecondary">#FF8C44</color> <!-- Lighter Vibrant Orange -->
+    <color name="colorSecondaryVariant">#FF6600</color>
+    <color name="colorOnSecondary">#000000</color>
+
+    <!-- Background and Surface Colors (Dark Theme) -->
+    <color name="colorBackground">#121212</color>
+    <color name="colorOnBackground">#E0E0E0</color>
+    <color name="colorSurface">#1E1E1E</color>
+    <color name="colorOnSurface">#E0E0E0</color>
+
+    <!-- Error Color (Dark Theme) -->
+    <color name="colorError">#CF6679</color>
+    <color name="colorOnError">#000000</color>
+
+    <!-- Other Standard Colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- Missing Colors -->
+    <color name="purple_500">#BB86FC</color>
+    <color name="themed_icon_color">#FFFFFF</color>
+    <color name="colorAccent">@color/colorSecondary</color>
+</resources>

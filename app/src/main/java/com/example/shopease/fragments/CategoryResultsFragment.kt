@@ -16,10 +16,12 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
 import com.example.shopease.adapter.ProductAdapter
-import com.example.shopease.ui.CartViewModel
-import com.example.shopease.ui.SearchViewModel
-import com.example.shopease.ui.ViewModelFactory
-import com.example.shopease.ui.WishlistViewModel
+import com.example.shopease.data.Product
+import com.example.shopease.viewmodels.CartUiEvent
+import com.example.shopease.viewmodels.CartViewModel
+import com.example.shopease.viewmodels.SearchViewModel
+import com.example.shopease.viewmodels.ViewModelFactory
+import com.example.shopease.viewmodels.WishlistViewModel
 import kotlinx.coroutines.launch
 
 class CategoryResultsFragment : Fragment() {
@@ -27,15 +29,13 @@ class CategoryResultsFragment : Fragment() {
     private lateinit var productAdapter: ProductAdapter
 
     private val viewModel: SearchViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
-
     private val cartViewModel: CartViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
-
     private val wishlistViewModel: WishlistViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
 
     private var category: String? = null
@@ -43,7 +43,7 @@ class CategoryResultsFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         arguments?.let {
-            category = it.getString("category")
+            category = it.getString(ARG_CATEGORY)
         }
     }
 
@@ -60,15 +60,17 @@ class CategoryResultsFragment : Fragment() {
         val categoryResultsRecyclerView: RecyclerView = view.findViewById(R.id.category_results_recycler_view)
         val noResultsMessage: TextView = view.findViewById(R.id.no_results_message)
 
-        // Create the adapter with the correct (simpler) constructor
-        productAdapter = ProductAdapter(cartViewModel, wishlistViewModel)
+        productAdapter = ProductAdapter(
+            onAddToCartClicked = { productUiModel -> cartViewModel.onEvent(CartUiEvent.AddItem(productUiModel.originalProduct)) },
+            onWishlistClicked = { productUiModel -> wishlistViewModel.toggleWishlist(productUiModel.originalProduct) },
+            onItemClicked = { productUiModel -> openProductDetail(productUiModel.originalProduct) }
+        )
         categoryResultsRecyclerView.adapter = productAdapter
         categoryResultsRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
 
         (requireActivity() as AppCompatActivity).supportActionBar?.title = category
         viewModel.onSearchQueryChanged(category ?: "")
 
-        // The UI now collects a single, complete state from the SearchViewModel
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.searchResults.collect { products ->
@@ -85,15 +87,24 @@ class CategoryResultsFragment : Fragment() {
         }
     }
 
+    private fun openProductDetail(product: Product) {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, ProductDetailFragment.newInstance(product))
+            .addToBackStack(null)
+            .commit()
+    }
+
     override fun onStop() {
         super.onStop()
         (requireActivity() as AppCompatActivity).supportActionBar?.title = getString(R.string.app_name)
     }
 
     companion object {
+        private const val ARG_CATEGORY = "category"
+
         fun newInstance(category: String) = CategoryResultsFragment().apply {
             arguments = Bundle().apply {
-                putString("category", category)
+                putString(ARG_CATEGORY, category)
             }
         }
     }

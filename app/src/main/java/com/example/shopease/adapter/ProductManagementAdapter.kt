@@ -8,17 +8,29 @@ import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.shopease.R
 import com.example.shopease.data.Product
 import com.example.shopease.fragments.admin.EditProductFragment
-import com.example.shopease.ui.AdminViewModel
+import com.example.shopease.viewmodels.AdminViewModel
+
+// Renamed to avoid redeclaration conflict with ProductAdapter
+private class ProductManagementDiffCallback : DiffUtil.ItemCallback<Product>() {
+    override fun areItemsTheSame(oldItem: Product, newItem: Product): Boolean {
+        return oldItem.id == newItem.id
+    }
+
+    override fun areContentsTheSame(oldItem: Product, newItem: Product): Boolean {
+        return oldItem == newItem
+    }
+}
 
 class ProductManagementAdapter(
-    private val products: MutableList<Product>,
     private val viewModel: AdminViewModel
-) : RecyclerView.Adapter<ProductManagementAdapter.ProductViewHolder>() {
+) : ListAdapter<Product, ProductManagementAdapter.ProductViewHolder>(ProductManagementDiffCallback()) { // Use the renamed class
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.product_management_item, parent, false)
@@ -26,12 +38,8 @@ class ProductManagementAdapter(
     }
 
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
-        val product = products[position]
+        val product = getItem(position)
         holder.bind(product)
-    }
-
-    override fun getItemCount(): Int {
-        return products.size
     }
 
     inner class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -46,7 +54,7 @@ class ProductManagementAdapter(
             productPrice.text = "$${product.price}"
             Glide.with(itemView.context).load(product.imageUrl).into(productImage)
 
-            editButton.setOnClickListener {
+            editButton.setOnClickListener { 
                 val activity = it.context as AppCompatActivity
                 val fragment = EditProductFragment.newInstance(product)
                 activity.supportFragmentManager.beginTransaction()

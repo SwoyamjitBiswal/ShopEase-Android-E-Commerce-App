@@ -1,6 +1,3 @@
 package com.example.shopease.data
 
-data class ProductUiModel(
-    val product: Product,
-    val isWishlisted: Boolean
-)
+// This file is intentionally left blank to resolve a redeclaration error.

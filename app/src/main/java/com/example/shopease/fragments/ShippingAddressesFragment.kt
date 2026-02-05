@@ -15,15 +15,15 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
 import com.example.shopease.adapter.ShippingAddressAdapter
-import com.example.shopease.ui.ShippingAddressViewModel
-import com.example.shopease.ui.ViewModelFactory
+import com.example.shopease.viewmodels.ShippingAddressViewModel // Corrected import path
+import com.example.shopease.viewmodels.ViewModelFactory // Corrected import path
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.launch
 
 class ShippingAddressesFragment : Fragment() {
 
     private val viewModel: ShippingAddressViewModel by viewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
 
     override fun onCreateView(

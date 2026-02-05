@@ -2,28 +2,29 @@ package com.example.shopease.data
 
 import androidx.room.TypeConverter
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
-import java.util.Date
 
 class Converters {
+
+    private val gson = Gson()
+
     @TypeConverter
-    fun fromTimestamp(value: Long?): Date? {
-        return value?.let { Date(it) }
+    fun fromCartItemList(items: List<CartItem>?): String? {
+        return items?.let { gson.toJson(it) }
     }
 
     @TypeConverter
-    fun dateToTimestamp(date: Date?): Long? {
-        return date?.time
-    }
-
-    @TypeConverter
-    fun fromCartItemList(value: String?): List<CartItem>? {
-        val listType = object : TypeToken<List<CartItem>>() {}.type
-        return Gson().fromJson(value, listType)
-    }
-
-    @TypeConverter
-    fun toCartItemList(list: List<CartItem>?): String? {
-        return Gson().toJson(list)
+    fun toCartItemList(json: String?): List<CartItem>? {
+        if (json == null) {
+            return emptyList()
+        }
+        return try {
+            val type = object : TypeToken<List<CartItem>>() {}.type
+            gson.fromJson(json, type)
+        } catch (e: JsonSyntaxException) {
+            // If parsing fails (due to old, bad data), return an empty list instead of crashing.
+            emptyList()
+        }
     }
 }

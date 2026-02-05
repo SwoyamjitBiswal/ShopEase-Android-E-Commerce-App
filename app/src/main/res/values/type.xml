@@ -1,13 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Define your font families here if you have custom fonts -->
-
-    <style name="TextAppearance.ShopEase.Headline1" parent="TextAppearance.MaterialComponents.Headline1">
-        <!-- Add customizations here -->
-    </style>
-
-    <style name="TextAppearance.ShopEase.Body1" parent="TextAppearance.MaterialComponents.Body1">
-        <!-- Add customizations here -->
-    </style>
-
+    <!-- Custom typography will be added back here later -->
 </resources>

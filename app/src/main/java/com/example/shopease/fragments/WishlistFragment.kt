@@ -15,8 +15,9 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
 import com.example.shopease.adapter.WishlistAdapter
-import com.example.shopease.ui.WishlistViewModel
-import com.example.shopease.ui.ViewModelFactory
+import com.example.shopease.data.Product
+import com.example.shopease.viewmodels.ViewModelFactory
+import com.example.shopease.viewmodels.WishlistViewModel
 import kotlinx.coroutines.launch
 
 class WishlistFragment : Fragment() {
@@ -26,7 +27,7 @@ class WishlistFragment : Fragment() {
     private lateinit var emptyWishlistView: LinearLayout
 
     private val viewModel: WishlistViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
 
     override fun onCreateView(
@@ -42,22 +43,41 @@ class WishlistFragment : Fragment() {
         wishlistRecyclerView = view.findViewById(R.id.wishlist_recycler_view)
         emptyWishlistView = view.findViewById(R.id.empty_wishlist_view)
 
-        wishlistRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        setupRecyclerView()
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.wishlistUiState.collect { uiState ->
-                    if (uiState.wishlistItems.isEmpty()) {
+                viewModel.wishlistItems.collect { wishlistItems ->
+                    if (wishlistItems.isEmpty()) {
                         emptyWishlistView.visibility = View.VISIBLE
                         wishlistRecyclerView.visibility = View.GONE
                     } else {
                         emptyWishlistView.visibility = View.GONE
                         wishlistRecyclerView.visibility = View.VISIBLE
-                        wishlistAdapter = WishlistAdapter(uiState.wishlistItems, viewModel)
-                        wishlistRecyclerView.adapter = wishlistAdapter
+                        wishlistAdapter.submitList(wishlistItems)
                     }
                 }
             }
         }
+    }
+
+    private fun setupRecyclerView() {
+        wishlistAdapter = WishlistAdapter(
+            onRemoveClicked = { wishlistItem ->
+                viewModel.toggleWishlist(wishlistItem.product)
+            },
+            onItemClicked = { wishlistItem ->
+                openProductDetail(wishlistItem.product)
+            }
+        )
+        wishlistRecyclerView.adapter = wishlistAdapter
+        wishlistRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+    }
+
+    private fun openProductDetail(product: Product) {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, ProductDetailFragment.newInstance(product))
+            .addToBackStack(null)
+            .commit()
     }
 }

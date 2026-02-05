@@ -7,22 +7,18 @@ import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.RatingBar
 import android.widget.TextView
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.example.shopease.R
-import com.example.shopease.data.Product
-import com.example.shopease.fragments.ProductDetailFragment
-import com.example.shopease.ui.CartViewModel
-import com.example.shopease.ui.WishlistViewModel
+import com.example.shopease.model.ProductUiModel
 
 class ProductCarouselAdapter(
-    private var productList: List<Product>,
-    private val cartViewModel: CartViewModel,
-    private val wishlistViewModel: WishlistViewModel
-) : RecyclerView.Adapter<ProductCarouselAdapter.ProductViewHolder>() {
+    private val onAddToCartClicked: (ProductUiModel) -> Unit,
+    private val onWishlistClicked: (ProductUiModel) -> Unit,
+    private val onItemClicked: (ProductUiModel) -> Unit
+) : ListAdapter<ProductUiModel, ProductCarouselAdapter.ProductViewHolder>(ProductCarouselDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ProductViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.product_carousel_item, parent, false)
@@ -30,23 +26,11 @@ class ProductCarouselAdapter(
     }
 
     override fun onBindViewHolder(holder: ProductViewHolder, position: Int) {
-        val product = productList[position]
-        holder.bind(product)
-        holder.itemView.setOnClickListener {
-            val activity = it.context as AppCompatActivity
-            val fragment = ProductDetailFragment.newInstance(product)
-            activity.supportFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, fragment)
-                .addToBackStack(null)
-                .commit()
-        }
+        val product = getItem(position)
+        holder.bind(product, onAddToCartClicked, onWishlistClicked, onItemClicked)
     }
 
-    override fun getItemCount(): Int {
-        return productList.size
-    }
-
-    inner class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    class ProductViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val productName: TextView = itemView.findViewById(R.id.product_name)
         private val productPrice: TextView = itemView.findViewById(R.id.product_price)
         private val productImage: ImageView = itemView.findViewById(R.id.product_image)
@@ -54,36 +38,33 @@ class ProductCarouselAdapter(
         private val productWishlistButton: ImageButton = itemView.findViewById(R.id.product_wishlist_button)
         private val addToCartButton: ImageButton = itemView.findViewById(R.id.add_to_cart_icon_button)
 
-        fun bind(product: Product) {
+        fun bind(
+            product: ProductUiModel,
+            onAddToCartClicked: (ProductUiModel) -> Unit,
+            onWishlistClicked: (ProductUiModel) -> Unit,
+            onItemClicked: (ProductUiModel) -> Unit
+        ) {
             productName.text = product.name
-            productPrice.text = "$${product.price}"
+            productPrice.text = String.format("$%.2f", product.price)
             productRating.rating = product.rating
             Glide.with(itemView.context).load(product.imageUrl).into(productImage)
 
-            updateWishlistButton(product)
+            itemView.setOnClickListener { onItemClicked(product) }
+            addToCartButton.setOnClickListener { onAddToCartClicked(product) }
+            productWishlistButton.setOnClickListener { onWishlistClicked(product) }
 
-            productWishlistButton.setOnClickListener {
-                val isWishlisted = wishlistViewModel.isWishlisted(product, wishlistViewModel.wishlistUiState.value)
-                if (isWishlisted) {
-                    wishlistViewModel.removeProductFromWishlist(product)
-                } else {
-                    wishlistViewModel.addProductToWishlist(product)
-                }
-            }
-
-            addToCartButton.setOnClickListener {
-                cartViewModel.addProductToCart(product)
-                Toast.makeText(itemView.context, "${product.name} added to cart", Toast.LENGTH_SHORT).show()
-            }
+            val wishIcon = if (product.isWished) R.drawable.ic_favorite else R.drawable.ic_favorite_border
+            productWishlistButton.setImageResource(wishIcon)
         }
+    }
+}
 
-        private fun updateWishlistButton(product: Product) {
-            val isWishlisted = wishlistViewModel.isWishlisted(product, wishlistViewModel.wishlistUiState.value)
-            if (isWishlisted) {
-                productWishlistButton.setColorFilter(ContextCompat.getColor(itemView.context, R.color.colorAccent))
-            } else {
-                productWishlistButton.colorFilter = null
-            }
-        }
+private class ProductCarouselDiffCallback : DiffUtil.ItemCallback<ProductUiModel>() {
+    override fun areItemsTheSame(oldItem: ProductUiModel, newItem: ProductUiModel): Boolean {
+        return oldItem.id == newItem.id
+    }
+
+    override fun areContentsTheSame(oldItem: ProductUiModel, newItem: ProductUiModel): Boolean {
+        return oldItem == newItem
     }
 }

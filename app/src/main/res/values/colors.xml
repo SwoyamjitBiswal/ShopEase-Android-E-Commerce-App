@@ -1,22 +1,31 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="black">#FF000000</color>
-    <color name="white">#FFFFFFFF</color>
-    <color name="darkGray">#A9A9A9</color>
+    <!-- Primary Color Palette -->
+    <color name="colorPrimary">#003366</color> <!-- Deep Ocean Blue -->
+    <color name="colorPrimaryVariant">#002244</color>
+    <color name="colorOnPrimary">#FFFFFF</color>
 
-    <!-- New Blue & Cyan Color Palette -->
-    <color name="colorPrimary">#2196F3</color> <!-- Blue -->
-    <color name="colorPrimaryDark">#1976D2</color> <!-- Darker Blue -->
-    <color name="colorAccent">#00BCD4</color> <!-- Cyan -->
+    <!-- Secondary Color Palette (for CTAs) -->
+    <color name="colorSecondary">#FF6600</color> <!-- Vibrant Orange -->
+    <color name="colorSecondaryVariant">#E65C00</color>
+    <color name="colorOnSecondary">#FFFFFF</color>
 
-    <color name="textColorPrimary">#212121</color>
-    <color name="textColorSecondary">#757575</color>
-    <color name="backgroundColor">#F5F5F5</color> <!-- Light Grey Background -->
-    <color name="iconColor">#616161</color>
+    <!-- Background and Surface Colors -->
+    <color name="colorBackground">#F5F5F5</color>
+    <color name="colorOnBackground">#1C1C1E</color>
+    <color name="colorSurface">#FFFFFF</color>
+    <color name="colorOnSurface">#1C1C1E</color>
 
-    <!-- Dark Theme Colors -->
-    <color name="darkBackgroundColor">#121212</color>
-    <color name="darkTextColorPrimary">#FFFFFF</color>
-    <color name="darkIconColor">#E0E0E0</color>
-    <color name="google_blue">#4285F4</color>
+    <!-- Error Color -->
+    <color name="colorError">#B00020</color>
+    <color name="colorOnError">#FFFFFF</color>
+
+    <!-- Other Standard Colors -->
+    <color name="white">#FFFFFF</color>
+    <color name="black">#000000</color>
+
+    <!-- Missing Colors -->
+    <color name="purple_500">#6200EE</color>
+    <color name="themed_icon_color">#000000</color>
+    <color name="colorAccent">@color/colorSecondary</color>
 </resources>

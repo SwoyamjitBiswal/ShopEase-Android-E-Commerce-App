@@ -1,11 +1,14 @@
 package com.example.shopease.data
 
-import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
+import androidx.room.Entity
+import androidx.room.PrimaryKey
 
-@Parcelize
+@Entity(tableName = "payment_methods")
 data class PaymentMethod(
-    val cardType: String, // e.g., "Visa", "Mastercard"
-    val lastFourDigits: String,
+    @PrimaryKey val id: String,
+    val userId: String,
+    val cardType: String,
+    val cardNumber: String,
+    val cardHolderName: String,
     val expiryDate: String
-) : Parcelable
+)

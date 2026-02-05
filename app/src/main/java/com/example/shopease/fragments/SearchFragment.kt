@@ -9,14 +9,14 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
-import com.example.shopease.ui.SearchViewModel
-import com.example.shopease.ui.ViewModelFactory
+import com.example.shopease.viewmodels.SearchViewModel
+import com.example.shopease.viewmodels.ViewModelFactory
 import com.google.android.material.chip.Chip
 
 class SearchFragment : Fragment() {
 
     private val viewModel: SearchViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
 
     override fun onCreateView(

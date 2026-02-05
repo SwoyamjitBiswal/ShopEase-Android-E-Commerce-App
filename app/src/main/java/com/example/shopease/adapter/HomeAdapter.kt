@@ -3,128 +3,116 @@ package com.example.shopease.adapter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.TextView
-import android.widget.Toast
-import androidx.appcompat.app.AppCompatActivity
+import androidx.fragment.app.FragmentActivity
 import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.bumptech.glide.Glide
+import androidx.viewpager2.widget.ViewPager2
 import com.example.shopease.R
 import com.example.shopease.data.HomeItem
-import com.example.shopease.fragments.CategoryResultsFragment
-import com.example.shopease.ui.CartViewModel
-import com.example.shopease.ui.WishlistViewModel
+import com.example.shopease.data.Product
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 
 class HomeAdapter(
-    private val items: List<HomeItem>,
-    private val cartViewModel: CartViewModel,
-    private val wishlistViewModel: WishlistViewModel
-) : RecyclerView.Adapter<RecyclerView.ViewHolder>() {
-
-    companion object {
-        private const val TYPE_BANNER = 0
-        private const val TYPE_HEADER = 1
-        private const val TYPE_CATEGORIES = 2
-        private const val TYPE_PRODUCT_CAROUSEL = 3
-        private const val TYPE_DIVIDER = 4
-        private const val TYPE_PRODUCT_GRID = 5
-    }
+    private val activity: FragmentActivity,
+    private val onAddToCartClicked: (Product) -> Unit,
+    private val onWishlistClicked: (Product) -> Unit,
+    private val onItemClicked: (Product) -> Unit
+) : ListAdapter<HomeItem, RecyclerView.ViewHolder>(HomeItem.DiffCallback()) {
 
     override fun getItemViewType(position: Int): Int {
-        return when (items[position]) {
-            is HomeItem.Banner -> TYPE_BANNER
-            is HomeItem.Header -> TYPE_HEADER
-            is HomeItem.Categories -> TYPE_CATEGORIES
-            is HomeItem.ProductCarousel -> TYPE_PRODUCT_CAROUSEL
-            is HomeItem.Divider -> TYPE_DIVIDER
-            is HomeItem.ProductGrid -> TYPE_PRODUCT_GRID
+        return when (getItem(position)) {
+            is HomeItem.Banner -> R.layout.home_banner_carousel_layout
+            is HomeItem.Header -> R.layout.home_header_item
+            is HomeItem.Categories -> R.layout.home_categories_item
+            is HomeItem.ProductCarousel -> R.layout.home_carousel_item
+            is HomeItem.Divider -> R.layout.home_divider_item
+            is HomeItem.ProductGrid -> R.layout.home_product_grid_item
         }
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
+        val view = LayoutInflater.from(parent.context).inflate(viewType, parent, false)
         return when (viewType) {
-            TYPE_BANNER -> BannerViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.home_banner_item, parent, false))
-            TYPE_HEADER -> HeaderViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.home_header_item, parent, false))
-            TYPE_CATEGORIES -> CategoriesViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.home_categories_item, parent, false))
-            TYPE_PRODUCT_CAROUSEL -> ProductCarouselViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.home_carousel_item, parent, false))
-            TYPE_DIVIDER -> DividerViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.home_divider_item, parent, false))
-            TYPE_PRODUCT_GRID -> ProductGridViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.home_product_grid_item, parent, false))
-            else -> throw IllegalArgumentException("Invalid view type")
+            R.layout.home_banner_carousel_layout -> BannerViewHolder(view)
+            R.layout.home_header_item -> HeaderViewHolder(view)
+            R.layout.home_categories_item -> CategoriesViewHolder(view)
+            R.layout.home_carousel_item -> ProductCarouselViewHolder(view)
+            R.layout.home_divider_item -> DividerViewHolder(view)
+            R.layout.home_product_grid_item -> ProductGridViewHolder(view)
+            else -> throw IllegalArgumentException("Unknown view type")
         }
     }
 
     override fun onBindViewHolder(holder: RecyclerView.ViewHolder, position: Int) {
-        when (holder) {
-            is BannerViewHolder -> holder.bind(items[position] as HomeItem.Banner)
-            is HeaderViewHolder -> holder.bind(items[position] as HomeItem.Header)
-            is CategoriesViewHolder -> holder.bind(items[position] as HomeItem.Categories)
-            is ProductCarouselViewHolder -> holder.bind(items[position] as HomeItem.ProductCarousel)
-            is ProductGridViewHolder -> holder.bind(items[position] as HomeItem.ProductGrid)
-            is DividerViewHolder -> { /* No binding needed */ }
+        when (val item = getItem(position)) {
+            is HomeItem.Banner -> (holder as BannerViewHolder).bind(item)
+            is HomeItem.Header -> (holder as HeaderViewHolder).bind(item)
+            is HomeItem.Categories -> (holder as CategoriesViewHolder).bind(item)
+            is HomeItem.ProductCarousel -> (holder as ProductCarouselViewHolder).bind(item)
+            is HomeItem.ProductGrid -> (holder as ProductGridViewHolder).bind(item)
+            is HomeItem.Divider -> { /* No-op */ }
         }
     }
 
-    override fun getItemCount(): Int = items.size
+    class BannerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val viewPager: ViewPager2 = itemView.findViewById(R.id.banner_view_pager)
+        private val tabLayout: TabLayout = itemView.findViewById(R.id.banner_tab_layout)
 
-    inner class BannerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val bannerImage: ImageView = itemView.findViewById(R.id.banner_image)
         fun bind(banner: HomeItem.Banner) {
-            Glide.with(itemView.context).load(banner.imageUrl).into(bannerImage)
+            val adapter = BannerCarouselAdapter(banner.imageUrls)
+            viewPager.adapter = adapter
+            TabLayoutMediator(tabLayout, viewPager) { _, _ -> }.attach()
         }
     }
 
-    inner class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val headerTitle: TextView = itemView.findViewById(R.id.header_title)
-        private val seeAllButton: TextView = itemView.findViewById(R.id.see_all_button)
+    class HeaderViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val title: TextView = itemView.findViewById(R.id.header_title)
         fun bind(header: HomeItem.Header) {
-            headerTitle.text = header.title
-            seeAllButton.setOnClickListener {
-                Toast.makeText(itemView.context, "See All clicked for ${header.title}", Toast.LENGTH_SHORT).show()
-            }
+            title.text = header.title
         }
     }
 
-    inner class CategoriesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val categoriesRecyclerView: RecyclerView = itemView.findViewById(R.id.categories_recycler_view)
-
+    class CategoriesViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val recyclerView: RecyclerView = itemView.findViewById(R.id.categories_recycler_view)
         fun bind(categories: HomeItem.Categories) {
-            val adapter = CategoryAdapter { category ->
-                val activity = itemView.context as AppCompatActivity
-                val fragment = CategoryResultsFragment.newInstance(category)
-                activity.supportFragmentManager.beginTransaction()
-                    .replace(R.id.fragment_container, fragment)
-                    .addToBackStack(null)
-                    .commit()
-            }
-            categoriesRecyclerView.adapter = adapter
+            recyclerView.layoutManager = GridLayoutManager(itemView.context, 3)
+            val adapter = CategoryAdapter { /* Handle category click */ }
+            recyclerView.adapter = adapter
             adapter.submitList(categories.categories)
-            if (categoriesRecyclerView.layoutManager == null) {
-                categoriesRecyclerView.layoutManager = LinearLayoutManager(itemView.context, LinearLayoutManager.HORIZONTAL, false)
-            }
         }
     }
 
     inner class ProductCarouselViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val productCarouselRecyclerView: RecyclerView = itemView.findViewById(R.id.carousel_recycler_view)
-        fun bind(productCarousel: HomeItem.ProductCarousel) {
-            productCarouselRecyclerView.layoutManager = LinearLayoutManager(itemView.context, LinearLayoutManager.HORIZONTAL, false)
-            val adapter = ProductAdapter(cartViewModel, wishlistViewModel)
-            productCarouselRecyclerView.adapter = adapter
-            adapter.submitList(productCarousel.products)
+        private val recyclerView: RecyclerView = itemView.findViewById(R.id.carousel_recycler_view)
+        fun bind(carousel: HomeItem.ProductCarousel) {
+            recyclerView.layoutManager = LinearLayoutManager(itemView.context, LinearLayoutManager.HORIZONTAL, false)
+            val adapter = ProductAdapter(
+                onAddToCartClicked = { onAddToCartClicked(it.originalProduct) },
+                onWishlistClicked = { onWishlistClicked(it.originalProduct) },
+                onItemClicked = { onItemClicked(it.originalProduct) }
+            )
+            recyclerView.adapter = adapter
+            adapter.submitList(carousel.products)
         }
     }
 
     inner class ProductGridViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val productGridRecyclerView: RecyclerView = itemView.findViewById(R.id.product_grid_recycler_view)
-        fun bind(productGrid: HomeItem.ProductGrid) {
-            productGridRecyclerView.layoutManager = GridLayoutManager(itemView.context, 2)
-            val adapter = ProductAdapter(cartViewModel, wishlistViewModel)
-            productGridRecyclerView.adapter = adapter
-            adapter.submitList(productGrid.products)
+        private val recyclerView: RecyclerView = itemView.findViewById(R.id.product_grid_recycler_view)
+        fun bind(grid: HomeItem.ProductGrid) {
+            recyclerView.layoutManager = GridLayoutManager(itemView.context, 2)
+            val adapter = ProductAdapter(
+                onAddToCartClicked = { onAddToCartClicked(it.originalProduct) },
+                onWishlistClicked = { onWishlistClicked(it.originalProduct) },
+                onItemClicked = { onItemClicked(it.originalProduct) }
+            )
+            recyclerView.adapter = adapter
+            adapter.submitList(grid.products)
         }
     }
 
-    inner class DividerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+    class DividerViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 }

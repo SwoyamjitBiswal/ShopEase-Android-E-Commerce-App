@@ -15,10 +15,11 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
 import com.example.shopease.adapter.OrderAdapter
-import com.example.shopease.ui.OrderViewModel
-import com.example.shopease.ui.ViewModelFactory
+import com.example.shopease.viewmodels.OrderViewModel
+import com.example.shopease.viewmodels.ViewModelFactory
 import kotlinx.coroutines.launch
 
+// Forcing a re-read of this file to break a corrupted cache.
 class MyOrdersFragment : Fragment() {
 
     private lateinit var ordersRecyclerView: RecyclerView
@@ -26,7 +27,7 @@ class MyOrdersFragment : Fragment() {
     private lateinit var noOrdersView: LinearLayout
 
     private val viewModel: OrderViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
 
     override fun onCreateView(
@@ -42,7 +43,7 @@ class MyOrdersFragment : Fragment() {
         ordersRecyclerView = view.findViewById(R.id.orders_recycler_view)
         noOrdersView = view.findViewById(R.id.no_orders_view)
 
-        ordersRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        setupRecyclerView()
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
@@ -53,11 +54,16 @@ class MyOrdersFragment : Fragment() {
                     } else {
                         noOrdersView.visibility = View.GONE
                         ordersRecyclerView.visibility = View.VISIBLE
-                        orderAdapter = OrderAdapter(orders)
-                        ordersRecyclerView.adapter = orderAdapter
+                        orderAdapter.submitList(orders)
                     }
                 }
             }
         }
+    }
+
+    private fun setupRecyclerView() {
+        orderAdapter = OrderAdapter()
+        ordersRecyclerView.adapter = orderAdapter
+        ordersRecyclerView.layoutManager = LinearLayoutManager(requireContext())
     }
 }

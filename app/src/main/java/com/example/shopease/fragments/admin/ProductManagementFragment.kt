@@ -14,8 +14,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
 import com.example.shopease.adapter.ProductManagementAdapter
-import com.example.shopease.ui.AdminViewModel
-import com.example.shopease.ui.ViewModelFactory
+import com.example.shopease.viewmodels.AdminViewModel
+import com.example.shopease.viewmodels.ViewModelFactory
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import kotlinx.coroutines.launch
 
@@ -26,7 +26,7 @@ class ProductManagementFragment : Fragment() {
     private lateinit var addProductFab: FloatingActionButton
 
     private val viewModel: AdminViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
 
     override fun onCreateView(
@@ -42,13 +42,12 @@ class ProductManagementFragment : Fragment() {
         productManagementRecyclerView = view.findViewById(R.id.product_management_recycler_view)
         addProductFab = view.findViewById(R.id.add_product_fab)
 
-        productManagementRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        setupRecyclerView()
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 viewModel.adminUiState.collect { uiState ->
-                    productManagementAdapter = ProductManagementAdapter(uiState.productList.toMutableList(), viewModel)
-                    productManagementRecyclerView.adapter = productManagementAdapter
+                    productManagementAdapter.submitList(uiState.productList)
                 }
             }
         }
@@ -59,5 +58,11 @@ class ProductManagementFragment : Fragment() {
                 .addToBackStack(null)
                 .commit()
         }
+    }
+
+    private fun setupRecyclerView() {
+        productManagementAdapter = ProductManagementAdapter(viewModel)
+        productManagementRecyclerView.adapter = productManagementAdapter
+        productManagementRecyclerView.layoutManager = LinearLayoutManager(requireContext())
     }
 }

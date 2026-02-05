@@ -12,8 +12,8 @@ import androidx.fragment.app.activityViewModels
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
 import com.example.shopease.data.Product
-import com.example.shopease.ui.AdminViewModel
-import com.example.shopease.ui.ViewModelFactory
+import com.example.shopease.viewmodels.AdminViewModel
+import com.example.shopease.viewmodels.ViewModelFactory
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
@@ -21,7 +21,7 @@ import com.google.android.material.textfield.TextInputLayout
 class EditProductFragment : Fragment() {
 
     private val viewModel: AdminViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
 
     private lateinit var product: Product

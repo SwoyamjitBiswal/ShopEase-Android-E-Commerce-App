@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Body of the shopping bag -->
+    <path
+        android:fillColor="#0D1B2A" 
+        android:pathData="M24,30 L24,80 L84,80 L84,30 Z" />
+
+    <!-- Handle / Smile -->
+    <path
+        android:strokeColor="#FF9900"
+        android:strokeWidth="6"
+        android:strokeLineCap="round"
+        android:pathData="M36,45 C36,25 72,25 72,45" />
+
+</vector>

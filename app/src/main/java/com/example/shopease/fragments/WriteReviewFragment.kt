@@ -17,7 +17,6 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
-import java.util.Date
 
 class WriteReviewFragment : Fragment() {
 
@@ -51,17 +50,22 @@ class WriteReviewFragment : Fragment() {
                 return@setOnClickListener
             }
 
+            val reviewsRef = FirebaseDatabase.getInstance().getReference("reviews").child(product.id)
+            val reviewId = reviewsRef.push().key ?: ""
+
+            // Correctly create the Review object with all required fields
             val review = Review(
+                id = reviewId,
+                productId = product.id,
                 userId = user.uid,
                 userName = user.displayName ?: "Anonymous",
-                userImageUrl = user.photoUrl?.toString(),
+                userImageUrl = user.photoUrl?.toString() ?: "", // Handle nullable URL
                 rating = ratingBar.rating,
                 comment = commentEditText.text.toString(),
-                date = Date()
+                date = System.currentTimeMillis() // Use Long for timestamp
             )
 
-            val reviewsRef = FirebaseDatabase.getInstance().getReference("reviews").child(product.id.toString())
-            reviewsRef.push().setValue(review).addOnCompleteListener { task ->
+            reviewsRef.child(reviewId).setValue(review).addOnCompleteListener { task ->
                 if (task.isSuccessful) {
                     updateProductRating()
                     Toast.makeText(requireContext(), "Review submitted successfully!", Toast.LENGTH_SHORT).show()
@@ -74,12 +78,12 @@ class WriteReviewFragment : Fragment() {
     }
 
     private fun updateProductRating() {
-        val reviewsRef = FirebaseDatabase.getInstance().getReference("reviews").child(product.id.toString())
+        val reviewsRef = FirebaseDatabase.getInstance().getReference("reviews").child(product.id)
         reviewsRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val reviews = snapshot.children.mapNotNull { it.getValue(Review::class.java) }
                 val averageRating = if (reviews.isNotEmpty()) reviews.map { it.rating }.average().toFloat() else 0f
-                FirebaseDatabase.getInstance().getReference("products").child(product.id.toString()).child("rating").setValue(averageRating)
+                FirebaseDatabase.getInstance().getReference("products").child(product.id).child("rating").setValue(averageRating)
             }
             override fun onCancelled(error: DatabaseError) { /* Handle error */ }
         })

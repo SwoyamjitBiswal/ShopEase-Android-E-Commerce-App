@@ -5,94 +5,92 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.activityViewModels
+import androidx.fragment.app.viewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
-import com.example.shopease.adapter.CategoryAdapter
 import com.example.shopease.adapter.HomeAdapter
-import com.example.shopease.data.HomeItem
-import com.example.shopease.ui.CartViewModel
-import com.example.shopease.ui.HomeViewModel
-import com.example.shopease.ui.ViewModelFactory
-import com.example.shopease.ui.WishlistViewModel
-import com.google.android.material.textfield.TextInputEditText
+import com.example.shopease.data.CartItem
+import com.example.shopease.data.Product
+import com.example.shopease.viewmodel.CartViewModel
+import com.example.shopease.viewmodel.CartViewModelFactory
+import com.example.shopease.data.CartRepository
+import com.example.shopease.viewmodel.HomeViewModel
+import com.example.shopease.viewmodel.HomeViewModelFactory
+import com.example.shopease.data.ProductRepository
+import com.example.shopease.viewmodel.WishlistViewModel
+import com.example.shopease.viewmodel.WishlistViewModelFactory
+import com.example.shopease.data.WishlistRepository
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
 
-    private lateinit var categoryAdapter: CategoryAdapter
+    private lateinit var homeRecyclerView: RecyclerView
     private lateinit var homeAdapter: HomeAdapter
 
-    private val viewModel: HomeViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+    private val homeViewModel: HomeViewModel by viewModels {
+        val application = requireActivity().application as ShopEaseApplication
+        HomeViewModelFactory(ProductRepository(application.database.productDao()))
     }
-    private val cartViewModel: CartViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+    private val cartViewModel: CartViewModel by viewModels {
+        val application = requireActivity().application as ShopEaseApplication
+        CartViewModelFactory(CartRepository(application.database.cartDao()))
     }
-    private val wishlistViewModel: WishlistViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+    private val wishlistViewModel: WishlistViewModel by viewModels {
+        val application = requireActivity().application as ShopEaseApplication
+        WishlistViewModelFactory(WishlistRepository(application.database.wishlistDao()))
     }
 
     override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
+        inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
+        // The root layout now includes the search bar and tabs
         return inflater.inflate(R.layout.fragment_home, container, false)
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        val categoryRecyclerView: RecyclerView = view.findViewById(R.id.categoryRecyclerView)
-        val productRecyclerView: RecyclerView = view.findViewById(R.id.productRecyclerView)
-
-        // Setup for Category RecyclerView
-        categoryAdapter = CategoryAdapter { category ->
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, CategoryResultsFragment.newInstance(category))
-                .addToBackStack(null)
-                .commit()
-        }
-        categoryRecyclerView.adapter = categoryAdapter
-        categoryRecyclerView.layoutManager = LinearLayoutManager(requireContext(), LinearLayoutManager.HORIZONTAL, false)
-
-        // Setup for the main content RecyclerView
-        productRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        setupRecyclerView(view)
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.homeUiState.collect { uiState ->
-                    // Submit categories to the category adapter
-                    categoryAdapter.submitList(uiState.categories)
-
-                    // Create and set the adapter for the main content
-                    val homeItems = listOf(
-                        HomeItem.Header("Deals of the Day"),
-                        HomeItem.ProductCarousel(uiState.dealsOfTheDay),
-                        HomeItem.Divider,
-                        HomeItem.Header("New Arrivals"),
-                        HomeItem.ProductGrid(uiState.newArrivals)
-                    )
-                    homeAdapter = HomeAdapter(homeItems, cartViewModel, wishlistViewModel)
-                    productRecyclerView.adapter = homeAdapter
+                homeViewModel.products.collect { products ->
+                    homeAdapter.submitList(products)
                 }
             }
         }
+    }
 
-        val searchEditText: TextInputEditText = view.findViewById(R.id.searchEditText)
-        searchEditText.isFocusable = false
-        searchEditText.isClickable = true
-        searchEditText.setOnClickListener {
-            parentFragmentManager.beginTransaction()
-                .replace(R.id.fragment_container, SearchFragment())
-                .addToBackStack(null)
-                .commit()
-        }
+    private fun setupRecyclerView(view: View) {
+        homeRecyclerView = view.findViewById(R.id.rv_products)
+        homeAdapter = HomeAdapter(
+            requireActivity(),
+            onAddToCartClicked = { product ->
+                val cartItem = CartItem(productId = product.id, quantity = 1)
+                cartViewModel.insert(cartItem)
+            },
+            onWishlistClicked = { product ->
+                wishlistViewModel.toggleWishlist(product)
+            },
+            onItemClicked = { product ->
+                openProductDetail(product)
+            }
+        )
+        homeRecyclerView.adapter = homeAdapter
+        homeRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
+    }
+
+    private fun openProductDetail(product: Product) {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, ProductDetailFragment.newInstance(product))
+            .addToBackStack(null)
+            .commit()
     }
 }

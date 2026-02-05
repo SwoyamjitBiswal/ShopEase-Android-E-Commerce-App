@@ -1,73 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
 
-    <!-- Drop shadow behind bag -->
+    <!-- Body of the shopping bag -->
     <path
-        android:pathData="M38,44 h32 a6,6 0,0,1,6,6 v30 a6,6 0,0,1,-6,6 h-32 a6,6 0,0,1,-6,-6 v-30 a6,6 0,0,1,6,-6z"
-        android:fillColor="#33000000"
-        android:translateX="2"
-        android:translateY="2" />
+        android:fillColor="#FFFFFF"
+        android:pathData="M24,40 L24,90 L84,90 L84,40 Z" />
 
-    <!-- Golden gradient bag body -->
+    <!-- Handle / Smile -->
     <path
-        android:pathData="M38,44 h32 a6,6 0,0,1,6,6 v30 a6,6 0,0,1,-6,6 h-32 a6,6 0,0,1,-6,-6 v-30 a6,6 0,0,1,6,-6z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:type="linear"
-                android:startColor="#FFD700"
-                android:centerColor="#FFC107"
-                android:endColor="#B8860B"
-                android:angle="90" />
-        </aapt:attr>
-    </path>
-
-    <!-- Handle -->
-    <path
-        android:pathData="M44,44 a10,10 0,0,1,20,0 h-4 a6,6 0,0,0,-12,0z">
-        <aapt:attr name="android:fillColor">
-            <gradient
-                android:type="linear"
-                android:startColor="#FFE97F"
-                android:centerColor="#FFD700"
-                android:endColor="#B8860B"
-                android:angle="270" />
-        </aapt:attr>
-    </path>
-
-    <!-- Subtle highlight (top reflection) -->
-    <path
-        android:pathData="M38,46 h32 a6,6 0,0,1,6,6 v2 h-44 v-2 a6,6 0,0,1,6,-6z"
-        android:fillColor="#40FFFFFF" />
-
-    <!-- Text: ShopEase -->
-    <group
-        android:translateX="18"
-        android:translateY="88"
-        android:scaleX="0.9"
-        android:scaleY="0.9">
-
-        <!-- Text shadow -->
-        <path
-            android:pathData="M0,0 h68 v5 h-68z"
-            android:fillColor="#22000000"
-            android:translateY="2" />
-
-        <!-- Golden text bar (placeholder for text) -->
-        <path
-            android:pathData="M0,0 h68 v5 h-68z">
-            <aapt:attr name="android:fillColor">
-                <gradient
-                    android:type="linear"
-                    android:startColor="#FFE97F"
-                    android:centerColor="#FFD700"
-                    android:endColor="#B8860B"
-                    android:angle="90" />
-            </aapt:attr>
-        </path>
-    </group>
+        android:strokeColor="#FF9900"
+        android:strokeWidth="8"
+        android:strokeLineCap="round"
+        android:pathData="M36,55 C36,35 72,35 72,55" />
 
 </vector>

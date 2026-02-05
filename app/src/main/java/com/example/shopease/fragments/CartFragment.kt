@@ -17,9 +17,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
 import com.example.shopease.adapter.CartAdapter
-import com.example.shopease.ui.CartUiEvent
-import com.example.shopease.ui.CartViewModel
-import com.example.shopease.viewmodels.ViewModelFactory
+import com.example.shopease.data.CartRepository
+import com.example.shopease.viewmodel.CartViewModel
+import com.example.shopease.viewmodel.CartViewModelFactory
+import java.util.Locale
 import kotlinx.coroutines.launch
 
 class CartFragment : Fragment() {
@@ -31,7 +32,8 @@ class CartFragment : Fragment() {
     private lateinit var checkoutLayout: LinearLayout
 
     private val viewModel: CartViewModel by viewModels {
-        ViewModelFactory(requireActivity().application as ShopEaseApplication)
+        val application = requireActivity().application as ShopEaseApplication
+        CartViewModelFactory(CartRepository(application.database.cartDao()))
     }
 
     override fun onCreateView(
@@ -44,43 +46,29 @@ class CartFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        totalAmountTextView = view.findViewById(R.id.total_price)
+        totalAmountTextView = view.findViewById(R.id.tv_total_price)
         emptyCartView = view.findViewById(R.id.empty_cart_view)
-        checkoutLayout = view.findViewById(R.id.checkout_layout)
+        checkoutLayout = view.findViewById(R.id.checkout_bar)
         setupRecyclerView(view)
 
-        val checkoutButton: Button = view.findViewById(R.id.checkout_button)
+        val checkoutButton: Button = view.findViewById(R.id.btn_proceed_to_buy)
         checkoutButton.setOnClickListener {
-            viewModel.onEvent(CartUiEvent.PlaceOrder)
+            // Add your navigation logic here
         }
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.cartItems.collect { cartItems ->
-                        cartAdapter.submitList(cartItems)
-                        val total = cartItems.sumOf { it.price * it.quantity }
-                        totalAmountTextView.text = String.format("Total: $%.2f", total)
+                viewModel.allCartItems.collect { cartItems ->
+                    cartAdapter.submitList(cartItems)
+                    val total = cartItems.sumOf { it.product.price * it.cartItem.quantity }
+                    totalAmountTextView.text = String.format(Locale.US, "$%.2f", total)
 
-                        if (cartItems.isEmpty()) {
-                            emptyCartView.visibility = View.VISIBLE
-                            checkoutLayout.visibility = View.GONE
-                        } else {
-                            emptyCartView.visibility = View.GONE
-                            checkoutLayout.visibility = View.VISIBLE
-                        }
-                    }
-                }
-
-                launch {
-                    viewModel.uiEvent.collect { event ->
-                        when (event) {
-                            is CartViewModel.UiEvent.NavigateToOrderSuccess -> {
-                                parentFragmentManager.beginTransaction()
-                                    .replace(R.id.fragment_container, OrderSuccessFragment())
-                                    .commit()
-                            }
-                        }
+                    if (cartItems.isEmpty()) {
+                        emptyCartView.visibility = View.VISIBLE
+                        checkoutLayout.visibility = View.GONE
+                    } else {
+                        emptyCartView.visibility = View.GONE
+                        checkoutLayout.visibility = View.VISIBLE
                     }
                 }
             }
@@ -88,10 +76,13 @@ class CartFragment : Fragment() {
     }
 
     private fun setupRecyclerView(view: View) {
-        cartRecyclerView = view.findViewById(R.id.cart_recycler_view)
+        cartRecyclerView = view.findViewById(R.id.rv_cart_items)
         cartAdapter = CartAdapter(
-            onItemRemoved = { item -> viewModel.onEvent(CartUiEvent.RemoveItem(item)) },
-            onQuantityChanged = { item, quantity -> viewModel.onEvent(CartUiEvent.UpdateQuantity(item, quantity)) }
+            onItemRemoved = { item -> viewModel.delete(item.cartItem) },
+            onQuantityChanged = { item, quantity ->
+                item.cartItem.quantity = quantity
+                viewModel.update(item.cartItem)
+            }
         )
         cartRecyclerView.adapter = cartAdapter
         cartRecyclerView.layoutManager = LinearLayoutManager(requireContext())

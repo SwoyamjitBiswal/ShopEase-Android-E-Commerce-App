@@ -17,15 +17,9 @@ interface ShippingAddressDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertAddress(address: ShippingAddress)
 
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertAll(addresses: List<ShippingAddress>)
-
     @Update
     suspend fun updateAddress(address: ShippingAddress)
 
     @Delete
     suspend fun deleteAddress(address: ShippingAddress)
-
-    @Query("DELETE FROM shipping_addresses WHERE userId = :userId")
-    suspend fun clearAddressesForUser(userId: String)
 }

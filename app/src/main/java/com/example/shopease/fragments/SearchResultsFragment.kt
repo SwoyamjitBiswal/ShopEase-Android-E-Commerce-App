@@ -18,11 +18,13 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
 import com.example.shopease.adapter.ProductAdapter
-import com.example.shopease.ui.CartViewModel
-import com.example.shopease.ui.SearchViewModel
-import com.example.shopease.ui.SortOrder
-import com.example.shopease.ui.ViewModelFactory
-import com.example.shopease.ui.WishlistViewModel
+import com.example.shopease.data.Product
+import com.example.shopease.viewmodels.CartUiEvent
+import com.example.shopease.viewmodels.CartViewModel
+import com.example.shopease.viewmodels.SearchViewModel
+import com.example.shopease.viewmodels.SortOrder
+import com.example.shopease.viewmodels.ViewModelFactory
+import com.example.shopease.viewmodels.WishlistViewModel
 import kotlinx.coroutines.launch
 
 class SearchResultsFragment : Fragment() {
@@ -30,15 +32,15 @@ class SearchResultsFragment : Fragment() {
     private lateinit var productAdapter: ProductAdapter
 
     private val viewModel: SearchViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
 
     private val cartViewModel: CartViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
 
     private val wishlistViewModel: WishlistViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -59,7 +61,11 @@ class SearchResultsFragment : Fragment() {
         val searchResultsRecyclerView: RecyclerView = view.findViewById(R.id.search_results_recycler_view)
         val noResultsMessage: TextView = view.findViewById(R.id.no_results_message)
 
-        productAdapter = ProductAdapter(cartViewModel, wishlistViewModel)
+        productAdapter = ProductAdapter(
+            onAddToCartClicked = { product -> cartViewModel.onEvent(CartUiEvent.AddItem(product.originalProduct)) },
+            onWishlistClicked = { product -> wishlistViewModel.toggleWishlist(product.originalProduct) },
+            onItemClicked = { product -> openProductDetail(product.originalProduct) }
+        )
         searchResultsRecyclerView.adapter = productAdapter
         searchResultsRecyclerView.layoutManager = GridLayoutManager(requireContext(), 2)
 
@@ -92,5 +98,12 @@ class SearchResultsFragment : Fragment() {
             R.id.sort_by_rating -> viewModel.onSortOrderChanged(SortOrder.RATING)
         }
         return super.onOptionsItemSelected(item)
+    }
+    
+    private fun openProductDetail(product: Product) {
+        parentFragmentManager.beginTransaction()
+            .replace(R.id.fragment_container, ProductDetailFragment.newInstance(product))
+            .addToBackStack(null)
+            .commit()
     }
 }

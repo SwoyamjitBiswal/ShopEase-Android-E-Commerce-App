@@ -5,7 +5,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
@@ -14,8 +14,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
 import com.example.shopease.adapter.ReviewManagementAdapter
-import com.example.shopease.ui.ReviewViewModel
-import com.example.shopease.ui.ViewModelFactory
+import com.example.shopease.viewmodels.AdminViewModel
+import com.example.shopease.viewmodels.ViewModelFactory
 import kotlinx.coroutines.launch
 
 class ReviewManagementFragment : Fragment() {
@@ -23,8 +23,8 @@ class ReviewManagementFragment : Fragment() {
     private lateinit var reviewManagementRecyclerView: RecyclerView
     private lateinit var reviewManagementAdapter: ReviewManagementAdapter
 
-    private val viewModel: ReviewViewModel by viewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+    private val viewModel: AdminViewModel by activityViewModels {
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
 
     override fun onCreateView(
@@ -38,15 +38,22 @@ class ReviewManagementFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         reviewManagementRecyclerView = view.findViewById(R.id.reviews_recycler_view)
-        reviewManagementRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+        setupRecyclerView()
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                viewModel.reviews.collect { reviews ->
-                    reviewManagementAdapter = ReviewManagementAdapter(reviews.toMutableList(), viewModel)
-                    reviewManagementRecyclerView.adapter = reviewManagementAdapter
+                viewModel.adminUiState.collect { uiState ->
+                    reviewManagementAdapter.submitList(uiState.reviewList)
                 }
             }
         }
+    }
+
+    private fun setupRecyclerView() {
+        reviewManagementAdapter = ReviewManagementAdapter {
+            viewModel.deleteReview(it)
+        }
+        reviewManagementRecyclerView.adapter = reviewManagementAdapter
+        reviewManagementRecyclerView.layoutManager = LinearLayoutManager(requireContext())
     }
 }

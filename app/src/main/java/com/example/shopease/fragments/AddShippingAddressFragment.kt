@@ -11,16 +11,18 @@ import androidx.lifecycle.lifecycleScope
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
 import com.example.shopease.data.ShippingAddress
-import com.example.shopease.ui.ShippingAddressViewModel
-import com.example.shopease.ui.ViewModelFactory
+import com.example.shopease.viewmodels.ShippingAddressViewModel
+import com.example.shopease.viewmodels.ViewModelFactory
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.launch
+import java.util.UUID
 
 class AddShippingAddressFragment : Fragment() {
 
     private val viewModel: ShippingAddressViewModel by viewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
 
     override fun onCreateView(
@@ -43,7 +45,15 @@ class AddShippingAddressFragment : Fragment() {
         val saveAddressButton = view.findViewById<MaterialButton>(R.id.save_address_button)
 
         saveAddressButton.setOnClickListener {
+            val user = FirebaseAuth.getInstance().currentUser
+            if (user == null) {
+                Toast.makeText(requireContext(), "You must be logged in to save an address.", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             val address = ShippingAddress(
+                id = UUID.randomUUID().toString(), // Provide a unique ID
+                userId = user.uid, // Provide the user's ID
                 fullName = fullNameEditText.text.toString(),
                 addressLine1 = addressLine1EditText.text.toString(),
                 addressLine2 = addressLine2EditText.text.toString(),

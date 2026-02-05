@@ -12,16 +12,17 @@ import androidx.fragment.app.activityViewModels
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
 import com.example.shopease.data.Product
-import com.example.shopease.ui.AdminViewModel
-import com.example.shopease.ui.ViewModelFactory
+import com.example.shopease.viewmodels.AdminViewModel
+import com.example.shopease.viewmodels.ViewModelFactory
 import com.google.android.material.button.MaterialButton
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
+import java.util.UUID
 
 class AddProductFragment : Fragment() {
 
     private val viewModel: AdminViewModel by activityViewModels {
-        ViewModelFactory((requireActivity().application as ShopEaseApplication).container.shoppingRepository)
+        ViewModelFactory(requireActivity().application as ShopEaseApplication)
     }
 
     override fun onCreateView(
@@ -78,7 +79,17 @@ class AddProductFragment : Fragment() {
             }
 
             if (isValid) {
-                val newProduct = Product(name = name, price = price!!, imageUrl = imageUrl, category = category)
+                // Correctly create the Product with all required fields
+                val newProduct = Product(
+                    id = UUID.randomUUID().toString(),
+                    name = name,
+                    description = "", // Provide a default empty description
+                    price = price!!,
+                    imageUrl = imageUrl,
+                    category = category,
+                    stock = 0, // Provide a default stock value
+                    rating = 0.0f // Provide a default rating
+                )
                 viewModel.addProduct(newProduct)
 
                 Toast.makeText(requireContext(), "Product added successfully", Toast.LENGTH_SHORT).show()

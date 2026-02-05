@@ -5,16 +5,15 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.TextView
-import android.widget.Toast
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import com.example.shopease.R
 import com.example.shopease.data.Review
-import com.example.shopease.ui.ReviewViewModel
 
 class ReviewManagementAdapter(
-    private val reviews: MutableList<Pair<String, Review>>,
-    private val viewModel: ReviewViewModel
-) : RecyclerView.Adapter<ReviewManagementAdapter.ReviewViewHolder>() {
+    private val onDeleteClicked: (Review) -> Unit
+) : ListAdapter<Review, ReviewManagementAdapter.ReviewViewHolder>(ReviewDiffCallback()) {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReviewViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.review_management_item, parent, false)
@@ -22,28 +21,30 @@ class ReviewManagementAdapter(
     }
 
     override fun onBindViewHolder(holder: ReviewViewHolder, position: Int) {
-        val (productId, review) = reviews[position]
-        holder.bind(productId, review)
+        holder.bind(getItem(position), onDeleteClicked)
     }
 
-    override fun getItemCount(): Int {
-        return reviews.size
-    }
+    class ReviewViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+        private val reviewText: TextView = itemView.findViewById(R.id.review_comment) // Corrected ID
+        private val reviewRating: TextView = itemView.findViewById(R.id.review_rating)
+        private val reviewUser: TextView = itemView.findViewById(R.id.review_author_name) // Corrected ID
+        private val deleteButton: Button = itemView.findViewById(R.id.delete_button) // Corrected ID
 
-    inner class ReviewViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        private val reviewTitle: TextView = itemView.findViewById(R.id.review_title)
-        private val reviewAuthor: TextView = itemView.findViewById(R.id.review_author_name)
-        // Corrected: The view in the XML is a Button, not an ImageButton
-        private val deleteButton: Button = itemView.findViewById(R.id.delete_button)
-
-        fun bind(productId: String, review: Review) {
-            reviewTitle.text = review.comment
-            reviewAuthor.text = "by ${review.userName}"
-
-            deleteButton.setOnClickListener {
-                viewModel.deleteReview(productId, review)
-                Toast.makeText(itemView.context, "Review deleted", Toast.LENGTH_SHORT).show()
-            }
+        fun bind(review: Review, onDeleteClicked: (Review) -> Unit) {
+            reviewText.text = review.comment
+            reviewRating.text = review.rating.toString()
+            reviewUser.text = review.userName
+            deleteButton.setOnClickListener { onDeleteClicked(review) }
         }
+    }
+}
+
+private class ReviewDiffCallback : DiffUtil.ItemCallback<Review>() {
+    override fun areItemsTheSame(oldItem: Review, newItem: Review): Boolean {
+        return oldItem.id == newItem.id
+    }
+
+    override fun areContentsTheSame(oldItem: Review, newItem: Review): Boolean {
+        return oldItem == newItem
     }
 }
