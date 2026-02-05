@@ -1,29 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/splash_background"
-    android:gravity="center"
-    android:orientation="vertical"
+    android:background="@color/white"
     tools:context=".SplashActivity">
 
     <ImageView
         android:id="@+id/splash_logo"
-        android:layout_width="180dp"
-        android:layout_height="180dp"
-        android:src="@drawable/ic_launcher_foreground"
-        app:tint="@android:color/white" />
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:src="@drawable/ic_app_logo"
+        app:layout_constraintBottom_toTopOf="@+id/splash_app_name"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
 
     <TextView
         android:id="@+id/splash_app_name"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="24dp"
+        android:layout_marginTop="16dp"
         android:text="@string/app_name"
-        android:textAppearance="?attr/textAppearanceHeadline3"
-        android:textColor="@android:color/white"
-        android:textStyle="bold" />
+        android:textAppearance="@style/TextAppearance.Material3.HeadlineLarge"
+        android:textColor="#0D1B2A"
+        android:textStyle="bold"
+        app:layout_constraintBottom_toTopOf="@+id/splash_tagline"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/splash_logo" />
 
-</LinearLayout>
+    <TextView
+        android:id="@+id/splash_tagline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="@string/app_tagline"
+        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+        android:textColor="#5A5A5A"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/splash_app_name" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
