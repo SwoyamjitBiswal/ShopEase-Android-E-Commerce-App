@@ -10,7 +10,6 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.GridLayoutManager
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
@@ -18,14 +17,9 @@ import com.example.shopease.adapter.HomeAdapter
 import com.example.shopease.data.CartItem
 import com.example.shopease.data.Product
 import com.example.shopease.viewmodel.CartViewModel
-import com.example.shopease.viewmodel.CartViewModelFactory
-import com.example.shopease.data.CartRepository
 import com.example.shopease.viewmodel.HomeViewModel
-import com.example.shopease.viewmodel.HomeViewModelFactory
-import com.example.shopease.data.ProductRepository
 import com.example.shopease.viewmodel.WishlistViewModel
-import com.example.shopease.viewmodel.WishlistViewModelFactory
-import com.example.shopease.data.WishlistRepository
+import com.example.shopease.viewmodels.ViewModelFactory
 import kotlinx.coroutines.launch
 
 class HomeFragment : Fragment() {
@@ -35,22 +29,21 @@ class HomeFragment : Fragment() {
 
     private val homeViewModel: HomeViewModel by viewModels {
         val application = requireActivity().application as ShopEaseApplication
-        HomeViewModelFactory(ProductRepository(application.database.productDao()))
+        ViewModelFactory(application.container.shoppingRepository)
     }
     private val cartViewModel: CartViewModel by viewModels {
         val application = requireActivity().application as ShopEaseApplication
-        CartViewModelFactory(CartRepository(application.database.cartDao()))
+        ViewModelFactory(application.container.shoppingRepository)
     }
     private val wishlistViewModel: WishlistViewModel by viewModels {
         val application = requireActivity().application as ShopEaseApplication
-        WishlistViewModelFactory(WishlistRepository(application.database.wishlistDao()))
+        ViewModelFactory(application.container.shoppingRepository)
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        // The root layout now includes the search bar and tabs
         return inflater.inflate(R.layout.fragment_home, container, false)
     }
 
@@ -61,8 +54,8 @@ class HomeFragment : Fragment() {
 
         viewLifecycleOwner.lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                homeViewModel.products.collect { products ->
-                    homeAdapter.submitList(products)
+                homeViewModel.homeItems.collect { homeItems ->
+                    homeAdapter.submitList(homeItems)
                 }
             }
         }
@@ -71,7 +64,6 @@ class HomeFragment : Fragment() {
     private fun setupRecyclerView(view: View) {
         homeRecyclerView = view.findViewById(R.id.rv_products)
         homeAdapter = HomeAdapter(
-            requireActivity(),
             onAddToCartClicked = { product ->
                 val cartItem = CartItem(productId = product.id, quantity = 1)
                 cartViewModel.insert(cartItem)
