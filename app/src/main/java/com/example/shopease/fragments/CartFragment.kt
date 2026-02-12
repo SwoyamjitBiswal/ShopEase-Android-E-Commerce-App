@@ -17,9 +17,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
 import com.example.shopease.adapter.CartAdapter
-import com.example.shopease.data.CartRepository
 import com.example.shopease.viewmodel.CartViewModel
-import com.example.shopease.viewmodel.CartViewModelFactory
+import com.example.shopease.viewmodels.ViewModelFactory
 import java.util.Locale
 import kotlinx.coroutines.launch
 
@@ -33,7 +32,7 @@ class CartFragment : Fragment() {
 
     private val viewModel: CartViewModel by viewModels {
         val application = requireActivity().application as ShopEaseApplication
-        CartViewModelFactory(CartRepository(application.database.cartDao()))
+        ViewModelFactory(application.container.shoppingRepository)
     }
 
     override fun onCreateView(
