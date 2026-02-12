@@ -11,7 +11,7 @@ import com.example.shopease.fragments.CartFragment
 import com.example.shopease.fragments.CategoriesFragment
 import com.example.shopease.fragments.HomeFragment
 import com.example.shopease.fragments.ProfileFragment
-import com.example.shopease.viewmodels.CartViewModel
+import com.example.shopease.viewmodel.CartViewModel
 import com.example.shopease.viewmodels.ViewModelFactory
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import kotlinx.coroutines.launch
@@ -19,7 +19,8 @@ import kotlinx.coroutines.launch
 class MainActivity : AppCompatActivity() {
 
     private val cartViewModel: CartViewModel by viewModels {
-        ViewModelFactory(application as ShopEaseApplication)
+        val application = application as ShopEaseApplication
+        ViewModelFactory(application.container.shoppingRepository)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,7 +51,7 @@ class MainActivity : AppCompatActivity() {
         // Observe cart item count and update badge
         lifecycleScope.launch {
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                cartViewModel.cartItems.collect { cartItems ->
+                cartViewModel.allCartItems.collect { cartItems ->
                     val badge = bottomNavigationView.getOrCreateBadge(R.id.nav_cart)
                     if (cartItems.isEmpty()) {
                         badge.isVisible = false
