@@ -9,10 +9,10 @@ import androidx.room.TypeConverters
 @Database(
     entities = [
         Product::class,
-        CartItem::class
+        CartItem::class,
+        WishlistItem::class
         // DEBUGGING: Temporarily disabling all other entities to isolate the crash
         /*
-        WishlistItem::class, 
         Order::class, 
         ShippingAddress::class, 
         Review::class,
@@ -20,7 +20,7 @@ import androidx.room.TypeConverters
         Category::class
         */
     ],
-    version = 19, // Incremented for cart feature
+    version = 20, // Incremented for wishlist feature
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -28,10 +28,10 @@ abstract class AppDatabase : RoomDatabase() {
 
     abstract fun productDao(): ProductDao
     abstract fun cartDao(): CartDao
+    abstract fun wishlistDao(): WishlistDao
 
     /*
     // DEBUGGING: Temporarily disabling all other DAOs
-    abstract fun wishlistDao(): WishlistDao
     abstract fun orderDao(): OrderDao
     abstract fun shippingAddressDao(): ShippingAddressDao
     abstract fun reviewDao(): ReviewDao
