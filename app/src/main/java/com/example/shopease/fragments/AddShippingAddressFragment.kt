@@ -32,7 +32,7 @@ class AddShippingAddressFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.buttonAddAddress.setOnClickListener {
+        binding.saveAddressButton.setOnClickListener {
             // Add your logic to add a new shipping address
         }
     }
