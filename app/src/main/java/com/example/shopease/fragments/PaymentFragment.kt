@@ -4,66 +4,38 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.lifecycle.Lifecycle
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
-import com.example.shopease.R
 import com.example.shopease.ShopEaseApplication
-import com.example.shopease.viewmodels.CartUiEvent
-import com.example.shopease.viewmodels.CartViewModel
+import com.example.shopease.databinding.FragmentPaymentBinding
+import com.example.shopease.viewmodels.PaymentViewModel
 import com.example.shopease.viewmodels.ViewModelFactory
-import java.util.Locale
-import kotlinx.coroutines.launch
 
 class PaymentFragment : Fragment() {
 
-    private val cartViewModel: CartViewModel by viewModels {
-        ViewModelFactory(requireActivity().application as ShopEaseApplication)
+    private var _binding: FragmentPaymentBinding? = null
+    private val binding get() = _binding!!
+
+    private val viewModel: PaymentViewModel by viewModels {
+        val application = requireActivity().application as ShopEaseApplication
+        ViewModelFactory(application.container.shoppingRepository)
     }
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
-        return inflater.inflate(R.layout.fragment_payment, container, false)
+    ): View {
+        _binding = FragmentPaymentBinding.inflate(inflater, container, false)
+        return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        // Add your logic here
+    }
 
-        val totalAmountTextView: TextView = view.findViewById(R.id.total_amount_text_view)
-        val placeOrderButton: Button = view.findViewById(R.id.place_order_button)
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                cartViewModel.cartItems.collect { cartItems ->
-                    // Correctly access nested properties to calculate total
-                    val total = cartItems.sumOf { it.product.price * it.cartItem.quantity }
-                    totalAmountTextView.text = String.format(Locale.US, "Total: $%.2f", total)
-                }
-            }
-        }
-
-        placeOrderButton.setOnClickListener {
-            cartViewModel.onEvent(CartUiEvent.PlaceOrder)
-        }
-
-        viewLifecycleOwner.lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                cartViewModel.uiEvent.collect { event ->
-                    when (event) {
-                        is CartViewModel.UiEvent.NavigateToOrderSuccess -> {
-                            parentFragmentManager.beginTransaction()
-                                .replace(R.id.fragment_container, OrderSuccessFragment())
-                                .commit()
-                        }
-                    }
-                }
-            }
-        }
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 }
