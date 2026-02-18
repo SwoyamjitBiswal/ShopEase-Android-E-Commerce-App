@@ -32,7 +32,7 @@ class AddPaymentMethodFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        binding.buttonAddPaymentMethod.setOnClickListener {
+        binding.saveCardButton.setOnClickListener {
             // Add your logic to add a new payment method
         }
     }
